@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Bayezid's Portfolio - Aspiring Data Scientist and Web Developer showcasing skills in Python, JavaScript, and Data Science">
+    <meta name="keywords" content="portfolio, data science, web development, python, javascript, machine learning">
+    <meta name="author" content="Bayezid">
+    <meta name="theme-color" content="#1a1a1a">
+    <meta property="og:title" content="Bayezid's Portfolio">
+    <meta property="og:description" content="Aspiring Data Scientist | Building the Future with Code">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍💻</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <title>Bayezid | Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#0a0a0a',
+                        primary: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'slide-up': 'slideUp 0.5s ease-in-out',
+                        'scale-in': 'scaleIn 0.5s ease-in-out',
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'gradient-x': 'gradient-x 15s ease infinite',
+                        'gradient-y': 'gradient-y 15s ease infinite',
+                        'gradient-xy': 'gradient-xy 15s ease infinite',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        scaleIn: {
+                            '0%': { transform: 'scale(0.95)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        },
+                        'gradient-x': {
+                            '0%, 100%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'left center'
+                            },
+                            '50%': {
+                                'background-size': '200% 200%',
+                                'background-position': 'right center'
+                            }
+                        },
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            background-image: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+            user-select: none;
+        }
+        body.dark {
+            background-color: #0a0a0a;
+            color: #ffffff;
+            background-image: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s ease;
+        }
+        .dark .glass-effect {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+        }
+        .glass-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        }
+        .dark .glass-effect:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .gradient-text {
+            background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+            animation: gradient-x 15s ease infinite;
+        }
+        .skill-tag {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .dark .skill-tag {
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .skill-tag:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+        }
+        .skill-tag::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, rgba(0, 0, 0, 0.03), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        .dark .skill-tag::after {
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+        .project-card {
+            transition: all 0.3s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .dark .project-card {
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .project-card:hover {
+            transform: translateY(-5px) rotateX(5deg);
+        }
+        .social-icon {
+            transition: all 0.3s ease;
+            position: relative;
+            color: #4b5563;
+        }
+        .dark .social-icon {
+            color: #ffffff;
+        }
+        .social-icon:hover {
+            transform: translateY(-3px) scale(1.1);
+        }
+        .social-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: currentColor;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.3s ease;
+        }
+        .social-icon:hover::before {
+            opacity: 0.1;
+            transform: scale(1.5);
+        }
+        .nav-link {
+            position: relative;
+            color: #4b5563;
+        }
+        .dark .nav-link {
+            color: #9ca3af;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .nav-link:hover::after {
+            transform: scaleX(1);
+        }
+        .hero-pattern {
+            background-image: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+                            radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+        }
+        .dashboard-tab {
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+            color: #4b5563;
+        }
+        .dark .dashboard-tab {
+            color: #9ca3af;
+        }
+        .dashboard-tab:hover {
+            transform: translateY(-1px);
+        }
+        .dashboard-tab.active {
+            color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        .dashboard-content {
+            transition: all 0.3s ease;
+        }
+        .form-radio, .form-checkbox {
+            background-color: rgba(255, 255, 255, 0.9);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+        .dark .form-radio, .dark .form-checkbox {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .form-radio:checked, .form-checkbox:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+        }
+        input, textarea, select {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #111827;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        .dark input, .dark textarea, .dark select {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .dark input:focus, .dark textarea:focus, .dark select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        .text-gray-300 {
+            color: #6b7280;
+        }
+        .dark .text-gray-300 {
+            color: #9ca3af;
+        }
+        .text-gray-400 {
+            color: #6b7280;
+        }
+        .dark .text-gray-400 {
+            color: #9ca3af;
+        }
+        .border-gray-700 {
+            border-color: #e5e7eb;
+        }
+        .dark .border-gray-700 {
+            border-color: #374151;
+        }
+        /* Add new styles for better light mode contrast */
+        .dark .text-gray-700 {
+            color: #9ca3af;
+        }
+        .text-gray-700 {
+            color: #4b5563;
+        }
+        .dark .bg-white\/10 {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .bg-white\/10 {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .dark .border-white\/20 {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .border-white\/20 {
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        /* New styles for better light mode appearance */
+        .dark .bg-gradient-to-r {
+            background-image: linear-gradient(to right, #3b82f6, #8b5cf6);
+        }
+        .bg-gradient-to-r {
+            background-image: linear-gradient(to right, #2563eb, #7c3aed);
+        }
+        .dark .hover\:from-primary-600 {
+            background-image: linear-gradient(to right, #2563eb, #7c3aed);
+        }
+        .hover\:from-primary-600 {
+            background-image: linear-gradient(to right, #1d4ed8, #6d28d9);
+        }
+        .dark .hover\:to-purple-600 {
+            background-image: linear-gradient(to right, #7c3aed, #9333ea);
+        }
+        .hover\:to-purple-600 {
+            background-image: linear-gradient(to right, #6d28d9, #7e22ce);
+        }
+        /* Button styles */
+        .dark .bg-primary-500 {
+            background-color: #3b82f6;
+        }
+        .bg-primary-500 {
+            background-color: #2563eb;
+        }
+        .dark .hover\:bg-primary-600 {
+            background-color: #2563eb;
+        }
+        .hover\:bg-primary-600 {
+            background-color: #1d4ed8;
+        }
+        /* Card hover effects */
+        .dark .hover\:bg-white\/10 {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .hover\:bg-white\/10 {
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        /* Table styles */
+        .dark .border-gray-700 {
+            border-color: #374151;
+        }
+        .border-gray-700 {
+            border-color: #e5e7eb;
+        }
+        /* Progress bar styles */
+        .dark .bg-white\/10 {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .bg-white\/10 {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        /* Allow text selection only in input fields and textareas */
+        input, textarea {
+            user-select: text;
+        }
+        /* Set cursor pointer for interactive elements */
+        a, button, .nav-link, .dashboard-tab, .social-icon, .skill-tag {
+            cursor: pointer;
+        }
+        /* Set default cursor for non-interactive elements */
+        h1, h2, h3, h4, h5, h6, p, span, div {
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="fixed top-0 w-full glass-effect z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="#home" class="text-xl font-bold gradient-text font-display flex items-center">
+                        <i class="fas fa-code mr-2"></i>Bayezid
+                    </a>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#home" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                        <i class="fas fa-home mr-2"></i>Home
+                    </a>
+                    <a href="#skills" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                        <i class="fas fa-laptop-code mr-2"></i>Skills
+                    </a>
+                    <a href="#projects" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                        <i class="fas fa-project-diagram mr-2"></i>Projects
+                    </a>
+                    <a href="#contact" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                        <i class="fas fa-envelope mr-2"></i>Contact
+                    </a>
+                    <div class="relative">
+                        <button id="dashboard-menu-button" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div id="dashboard-menu" class="hidden absolute right-0 mt-2 w-48 glass-effect rounded-lg shadow-lg py-1 z-50">
+                            <div id="user-info" class="hidden px-4 py-2 border-b border-gray-700">
+                                <span class="text-sm"></span>
+                            </div>
+                            <a href="#dashboard" class="dashboard-menu-item w-full text-left px-4 py-2 hover:bg-white/10 flex items-center">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                        </div>
+                    </div>
+                    <button id="signout-button" onclick="authManager.handleLogout()" class="nav-link hover:text-red-400 transition duration-300 flex items-center hidden">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                    </button>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button id="mobile-menu-button" class="text-white focus:outline-none">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobile-menu" class="hidden md:hidden glass-effect">
+            <div class="px-2 pt-2 pb-3 space-y-1">
+                <a href="#home" class="block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-home mr-2"></i>Home
+                </a>
+                <a href="#skills" class="block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-laptop-code mr-2"></i>Skills
+                </a>
+                <a href="#projects" class="block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-project-diagram mr-2"></i>Projects
+                </a>
+                <a href="#contact" class="block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-envelope mr-2"></i>Contact
+                </a>
+                <a href="#dashboard" class="dashboard-menu-item block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                </a>
+                <button id="mobile-signout-button" onclick="authManager.handleLogout()" class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center text-red-400 hidden">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Sign Out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center pt-16">
+        <div class="text-center px-4 sm:px-6 lg:px-8 animate-fade-in">
+            <div class="mb-8">
+                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary-500/20">
+                    <img src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+                </div>
+            </div>
+            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-6 animate-float font-display">
+                <span class="gradient-text">Bayezid</span>
+            </h1>
+            <p class="text-xl sm:text-2xl text-gray-300 mb-8 animate-slide-up">
+                Aspiring Data Scientist | Building the Future with Code
+            </p>
+            <div class="flex justify-center space-x-4">
+                <a href="#projects" class="inline-block px-8 py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg font-semibold hover:from-primary-600 hover:to-purple-600 transition duration-300 transform hover:scale-105 animate-pulse-slow">
+                    View My Work
+                </a>
+                <a href="#contact" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
+                    Contact Me
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="py-16 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Skills</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float">
+                    <h3 class="text-xl font-bold mb-4 font-display">Programming Languages</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Python</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">JavaScript</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">SQL</span>
+                    </div>
+                </div>
+                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float">
+                    <h3 class="text-xl font-bold mb-4 font-display">Data Science Tools</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Pandas</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">NumPy</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">Machine Learning</span>
+                    </div>
+                </div>
+                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float">
+                    <h3 class="text-xl font-bold mb-4 font-display">Web Development</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">HTML</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Tailwind CSS</span>
+                    </div>
+                </div>
+                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float">
+                    <h3 class="text-xl font-bold mb-4 font-display">Data Visualization</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Matplotlib</span>
+                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Seaborn</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-16 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Projects</h2>
+            <div id="projects-grid" class="flex flex-wrap justify-center gap-6">
+                <!-- Projects will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-16 relative">
+        <div class="max-w-3xl mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-8 gradient-text animate-float font-display">Get In Touch</h2>
+            <div class="glass-effect rounded-xl p-8 space-y-6">
+                <form id="contact-form" class="space-y-6">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium">To</label>
+                        <div class="w-full p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md flex items-center">
+                            <span class="text-gray-300">hrbayezid@gmail.com</span>
+                            <span class="ml-2 px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">Primary</span>
+                        </div>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="from-email" class="block text-sm font-medium">From Email</label>
+                        <input id="from-email" type="email" required
+                            class="w-full p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label for="contact-message" class="block text-sm font-medium">Message</label>
+                        <textarea id="contact-message" rows="5" required
+                            class="w-full p-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"></textarea>
+                    </div>
+                    <button type="submit"
+                        class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full hover:from-primary-600 hover:to-purple-600 transition duration-300">
+                        Send Message
+                    </button>
+                </form>
+            </div>
+            <!-- Social Media Links -->
+            <div class="mt-8 flex justify-center space-x-6">
+                <a href="https://www.facebook.com/hrbayezid/" target="_blank" class="social-icon text-white hover:text-blue-500 transition duration-300">
+                    <i class="fab fa-facebook text-2xl"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/hrbayezid/" target="_blank" class="social-icon text-white hover:text-blue-600 transition duration-300">
+                    <i class="fab fa-linkedin text-2xl"></i>
+                </a>
+                <a href="mailto:hrbayezid@gmail.com" class="social-icon text-white hover:text-red-500 transition duration-300">
+                    <i class="fas fa-envelope text-2xl"></i>
+                </a>
+                <a href="https://wa.me/8801648752209" target="_blank" class="social-icon text-white hover:text-green-500 transition duration-300">
+                    <i class="fab fa-whatsapp text-2xl"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Section -->
+    <section id="dashboard" class="py-16 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Dashboard</h2>
+            
+            <!-- Dashboard Tabs -->
+            <div class="mb-8">
+                <div class="flex space-x-4 border-b border-gray-700">
+                    <button class="dashboard-tab active px-4 py-2 text-primary-400 border-b-2 border-primary-400 cursor-pointer" data-tab="projects" type="button">
+                        <i class="fas fa-project-diagram mr-2"></i>Projects
+                    </button>
+                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="profile" type="button">
+                        <i class="fas fa-user mr-2"></i>Profile
+                    </button>
+                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="skills" type="button">
+                        <i class="fas fa-code mr-2"></i>Skills
+                    </button>
+                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="settings" type="button">
+                        <i class="fas fa-cog mr-2"></i>Settings
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Dashboard Content -->
+            <div id="dashboard-content">
+                <!-- Projects Management -->
+                <div id="projects-tab" class="dashboard-content">
+                    <div class="glass-effect rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold font-display">Project Management</h3>
+                            <button id="add-project-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                <i class="fas fa-plus mr-2"></i>Add Project
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left border-b border-gray-700">
+                                        <th class="pb-4">Title</th>
+                                        <th class="pb-4">Category</th>
+                                        <th class="pb-4">Status</th>
+                                        <th class="pb-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projects-table">
+                                    <!-- Projects will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Management -->
+                <div id="profile-tab" class="dashboard-content hidden">
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-6 font-display">Profile Settings</h3>
+                        <form id="profile-form" class="space-y-6">
+                            <div class="flex items-center space-x-6">
+                                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary-500/20">
+                                    <img id="profile-preview" src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+                                </div>
+                                <div>
+                                    <input type="file" id="profile-image" accept="image/*" class="hidden">
+                                    <button type="button" onclick="document.getElementById('profile-image').click()" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
+                                        Change Profile Picture
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Full Name</label>
+                                    <input type="text" name="name" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Bayezid">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Title</label>
+                                    <input type="text" name="title" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Aspiring Data Scientist">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Email</label>
+                                    <input type="email" name="email" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="hrbayezid@gmail.com">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium mb-2">Phone</label>
+                                    <input type="tel" name="phone" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="+8801648752209">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium mb-2">Bio</label>
+                                <textarea name="bio" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" rows="4">Aspiring Data Scientist | Building the Future with Code</textarea>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Skills Management -->
+                <div id="skills-tab" class="dashboard-content hidden">
+                    <div class="glass-effect rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold font-display">Skills Management</h3>
+                            <button id="add-skill-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                <i class="fas fa-plus mr-2"></i>Add Skill
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="text-left border-b border-gray-700">
+                                        <th class="pb-4">Name</th>
+                                        <th class="pb-4">Category</th>
+                                        <th class="pb-4">Proficiency</th>
+                                        <th class="pb-4">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skills-table">
+                                    <!-- Skills will be dynamically added here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Management -->
+                <div id="settings-tab" class="dashboard-content hidden">
+                    <div class="glass-effect rounded-xl p-6">
+                        <h3 class="text-xl font-bold mb-6 font-display">General Settings</h3>
+                        <form id="settings-form" class="space-y-6">
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-semibold">Appearance</h4>
+                                <div class="flex items-center space-x-4">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="theme" value="dark" checked class="form-radio text-primary-500">
+                                        <span>Dark Mode</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="radio" name="theme" value="light" class="form-radio text-primary-500">
+                                        <span>Light Mode</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-semibold">Notifications</h4>
+                                <div class="space-y-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" name="email_notifications" checked class="form-checkbox text-primary-500">
+                                        <span>Email Notifications</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" name="project_updates" checked class="form-checkbox text-primary-500">
+                                        <span>Project Updates</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="text-lg font-semibold">Privacy</h4>
+                                <div class="space-y-2">
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" name="show_email" checked class="form-checkbox text-primary-500">
+                                        <span>Show Email on Profile</span>
+                                    </label>
+                                    <label class="flex items-center space-x-2">
+                                        <input type="checkbox" name="show_social" checked class="form-checkbox text-primary-500">
+                                        <span>Show Social Links</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex justify-end">
+                                <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                    Save Settings
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 glass-effect p-3 rounded-full shadow-lg hover:bg-white/10 transition duration-300 hidden">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+    </button>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+
+    <!-- Auth Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect p-8 rounded-xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold gradient-text">Welcome</h2>
+                <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="login-email" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="login-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                    Login
+                </button>
+                <p class="text-center text-sm">
+                    Don't have an account? 
+                    <button type="button" onclick="document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden')" class="text-primary-400 hover:text-primary-300">
+                        Sign up
+                    </button>
+                </p>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-sm font-medium mb-1">Full Name</label>
+                    <input type="text" id="signup-name" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="signup-email" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="signup-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                    Sign Up
+                </button>
+                <p class="text-center text-sm">
+                    Already have an account? 
+                    <button type="button" onclick="document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden')" class="text-primary-400 hover:text-primary-300">
+                        Login
+                    </button>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add the auth.js script before the closing body tag -->
+    <script src="js/auth.js"></script>
+    <script src="js/contact.js"></script>
+</body>
+</html>
