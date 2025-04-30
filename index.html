@@ -3,13 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Bayezid's Portfolio - Aspiring Data Scientist and Web Developer showcasing skills in Python, JavaScript, and Data Science">
-    <meta name="keywords" content="portfolio, data science, web development, python, javascript, machine learning">
+    <meta name="description" content="Portfolio of Bayezid - Data Scientist and Web Developer specializing in Python, JavaScript, and Machine Learning">
+    <meta name="keywords" content="data science, web development, python, javascript, machine learning, portfolio, data visualization">
     <meta name="author" content="Bayezid">
     <meta name="theme-color" content="#1a1a1a">
-    <meta property="og:title" content="Bayezid's Portfolio">
-    <meta property="og:description" content="Aspiring Data Scientist | Building the Future with Code">
+    <meta property="og:title" content="Bayezid's Portfolio - Data Scientist & Web Developer">
+    <meta property="og:description" content="Portfolio showcasing data science projects, web development work, and technical skills">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hrbayezid.github.io/portfolio/">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Bayezid's Portfolio">
+    <meta name="twitter:description" content="Data Scientist & Web Developer Portfolio">
+    
+    <!-- Schema.org markup for Google -->
+    <script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "Person",
+        "name": "Bayezid",
+        "url": "https://hrbayezid.github.io/portfolio/",
+        "sameAs": [
+            "https://github.com/hrbayezid",
+            "https://linkedin.com/in/your-linkedin"
+        ],
+        "jobTitle": "Data Scientist",
+        "description": "Aspiring Data Scientist and Web Developer specializing in Python, JavaScript, and Machine Learning"
+    }
+    </script>
+
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👨‍💻</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -124,6 +145,7 @@
         }
         .gradient-text {
             background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
+            background-clip: text;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 200% 200%;
@@ -385,8 +407,7 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="fixed top-0 w-full glass-effect z-50">
+    <nav role="navigation" aria-label="Main navigation" class="fixed top-0 w-full glass-effect z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
@@ -434,7 +455,11 @@
                     </button>
                 </div>
                 <div class="md:hidden flex items-center">
-                    <button id="mobile-menu-button" class="text-white focus:outline-none">
+                    <button id="mobile-menu-button" 
+                        aria-label="Open navigation menu"
+                        aria-expanded="false"
+                        aria-controls="mobile-menu"
+                        class="text-white focus:outline-none">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
@@ -473,316 +498,317 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section id="home" class="min-h-screen flex items-center justify-center pt-16">
-        <div class="text-center px-4 sm:px-6 lg:px-8 animate-fade-in">
-            <div class="mb-8">
-                <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary-500/20 animate-float">
-                    <img src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+    <main id="main-content" role="main">
+        <section id="home" class="min-h-screen flex items-center justify-center pt-16" aria-label="Introduction">
+            <div class="text-center px-4 sm:px-6 lg:px-8 animate-fade-in">
+                <div class="mb-8">
+                    <div class="w-32 h-32 mx-auto rounded-full overflow-hidden border-4 border-primary-500/20 animate-float">
+                        <img src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                </div>
+                <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 animate-float font-display">
+                    <span class="gradient-text">Hi, I'm Bayezid</span>
+                </h1>
+                <div class="h-24">
+                    <p class="text-xl sm:text-2xl text-gray-300 mb-2 animate-slide-up typing-text"></p>
+                    <p class="text-lg sm:text-xl text-gray-400 mb-8 animate-slide-up">Turning Data into Meaningful Insights</p>
+                </div>
+                <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+                    <a href="#projects" class="inline-block px-8 py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg font-semibold hover:from-primary-600 hover:to-purple-600 transition duration-300 transform hover:scale-105 animate-pulse-slow">
+                        <i class="fas fa-project-diagram mr-2"></i>Explore Projects
+                    </a>
+                    <a href="#contact" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
+                        <i class="fas fa-paper-plane mr-2"></i>Get in Touch
+                    </a>
+                    <a href="https://github.com/hrbayezid" target="_blank" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
+                        <i class="fab fa-github mr-2"></i>View GitHub
+                    </a>
                 </div>
             </div>
-            <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 animate-float font-display">
-                <span class="gradient-text">Hi, I'm Bayezid</span>
-            </h1>
-            <div class="h-24">
-                <p class="text-xl sm:text-2xl text-gray-300 mb-2 animate-slide-up typing-text"></p>
-                <p class="text-lg sm:text-xl text-gray-400 mb-8 animate-slide-up">Turning Data into Meaningful Insights</p>
-            </div>
-            <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-                <a href="#projects" class="inline-block px-8 py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg font-semibold hover:from-primary-600 hover:to-purple-600 transition duration-300 transform hover:scale-105 animate-pulse-slow">
-                    <i class="fas fa-project-diagram mr-2"></i>Explore Projects
-                </a>
-                <a href="#contact" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
-                    <i class="fas fa-paper-plane mr-2"></i>Get in Touch
-                </a>
-                <a href="https://github.com/hrbayezid" target="_blank" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
-                    <i class="fab fa-github mr-2"></i>View GitHub
-                </a>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Skills Section -->
-    <section id="skills" class="py-16 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Skills</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
-                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
-                    <h3 class="text-xl font-bold mb-4 font-display">Programming Languages</h3>
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Python</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">JavaScript</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">SQL</span>
-                    </div>
-                </div>
-                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
-                    <h3 class="text-xl font-bold mb-4 font-display">Data Science Tools</h3>
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Pandas</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">NumPy</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">Machine Learning</span>
-                    </div>
-                </div>
-                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
-                    <h3 class="text-xl font-bold mb-4 font-display">Web Development</h3>
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">HTML</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Tailwind CSS</span>
-                    </div>
-                </div>
-                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
-                    <h3 class="text-xl font-bold mb-4 font-display">Data Visualization</h3>
-                    <div class="flex flex-wrap gap-2 justify-center">
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Matplotlib</span>
-                        <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Seaborn</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Projects Section -->
-    <section id="projects" class="py-8 sm:py-16 relative">
-        <div class="container mx-auto px-4">
-            <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 gradient-text animate-float font-display">Projects</h2>
-            <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-[1200px] mx-auto">
-                <!-- Projects will be dynamically added here -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Contact Section -->
-    <section id="contact" class="py-16 relative">
-        <div class="max-w-xl mx-auto px-4">
-            <h2 class="text-2xl font-bold text-center mb-6 gradient-text animate-float font-display">Get In Touch</h2>
-            <div class="glass-effect rounded-lg p-6 space-y-4">
-                <form id="contact-form" class="space-y-4">
-                    <div class="flex gap-4">
-                        <div class="flex-1">
-                            <label for="from-email" class="text-sm font-medium mb-1 block">Email</label>
-                            <input id="from-email" type="email" required
-                                class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="your@email.com">
-                        </div>
-                        <div class="flex-1">
-                            <label for="from-name" class="text-sm font-medium mb-1 block">Name</label>
-                            <input id="from-name" type="text" required
-                                class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                                placeholder="Your Name">
+        <section id="skills" class="py-16 relative" aria-label="Skills overview">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Skills</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 justify-items-center">
+                    <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
+                        <h3 class="text-xl font-bold mb-4 font-display">Programming Languages</h3>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Python</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">JavaScript</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">SQL</span>
                         </div>
                     </div>
-                    <div>
-                        <label for="contact-message" class="text-sm font-medium mb-1 block">Message</label>
-                        <textarea id="contact-message" rows="3" required
-                            class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                            placeholder="Write your message here..."></textarea>
+                    <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
+                        <h3 class="text-xl font-bold mb-4 font-display">Data Science Tools</h3>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Pandas</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">NumPy</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-teal-500 to-blue-500 rounded-full">Machine Learning</span>
+                        </div>
                     </div>
-                    <button type="submit"
-                        class="w-full py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-md hover:from-primary-600 hover:to-purple-600 transition duration-300 text-sm font-medium">
-                        Send Message
-                    </button>
-                </form>
+                    <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
+                        <h3 class="text-xl font-bold mb-4 font-display">Web Development</h3>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">HTML</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Tailwind CSS</span>
+                        </div>
+                    </div>
+                    <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
+                        <h3 class="text-xl font-bold mb-4 font-display">Data Visualization</h3>
+                        <div class="flex flex-wrap gap-2 justify-center">
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full">Matplotlib</span>
+                            <span class="skill-tag px-4 py-2 bg-gradient-to-r from-purple-500 to-teal-500 rounded-full">Seaborn</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="py-8 sm:py-16 relative" aria-label="Project showcase">
+            <div class="container mx-auto px-4">
+                <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 gradient-text animate-float font-display">Projects</h2>
+                <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-[1200px] mx-auto">
+                    <!-- Projects will be dynamically added here -->
+                </div>
+            </div>
+        </section>
+
+        <section id="contact" class="py-16 relative" aria-label="Contact information">
+            <div class="max-w-xl mx-auto px-4">
+                <h2 class="text-2xl font-bold text-center mb-6 gradient-text animate-float font-display">Get In Touch</h2>
+                <div class="glass-effect rounded-lg p-6 space-y-4">
+                    <form id="contact-form" class="space-y-4">
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label for="from-email" class="text-sm font-medium mb-1 block">Email</label>
+                                <input id="from-email" type="email" required
+                                    class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="your@email.com">
+                            </div>
+                            <div class="flex-1">
+                                <label for="from-name" class="text-sm font-medium mb-1 block">Name</label>
+                                <input id="from-name" type="text" required
+                                    class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                    placeholder="Your Name">
+                            </div>
+                        </div>
+                        <div>
+                            <label for="contact-message" class="text-sm font-medium mb-1 block">Message</label>
+                            <textarea id="contact-message" rows="3" required
+                                class="w-full p-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                placeholder="Write your message here..."></textarea>
+                        </div>
+                        <button type="submit"
+                            class="w-full py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-md hover:from-primary-600 hover:to-purple-600 transition duration-300 text-sm font-medium">
+                            Send Message
+                        </button>
+                    </form>
+                    
+                    <!-- Social Links -->
+                    <div class="mt-8 flex justify-center space-x-6">
+                        <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/your-linkedin" target="_blank" rel="noopener noreferrer" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="https://twitter.com/your-twitter" target="_blank" rel="noopener noreferrer" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="mailto:hrbayezid@gmail.com" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            <i class="fas fa-envelope"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard" class="py-16 relative" aria-label="Dashboard">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Dashboard</h2>
                 
-                <!-- Social Links -->
-                <div class="mt-8 flex justify-center space-x-6">
-                    <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" 
-                        class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
-                        <i class="fab fa-github"></i>
-                    </a>
-                    <a href="https://linkedin.com/in/your-linkedin" target="_blank" rel="noopener noreferrer" 
-                        class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="https://twitter.com/your-twitter" target="_blank" rel="noopener noreferrer" 
-                        class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
-                        <i class="fab fa-twitter"></i>
-                    </a>
-                    <a href="mailto:hrbayezid@gmail.com" 
-                        class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
-                        <i class="fas fa-envelope"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Dashboard Section -->
-    <section id="dashboard" class="py-16 relative">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-center mb-12 gradient-text animate-float font-display">Dashboard</h2>
-            
-            <!-- Dashboard Tabs -->
-            <div class="mb-8">
-                <div class="flex space-x-4 border-b border-gray-700">
-                    <button class="dashboard-tab active px-4 py-2 text-primary-400 border-b-2 border-primary-400 cursor-pointer" data-tab="projects" type="button">
-                        <i class="fas fa-project-diagram mr-2"></i>Projects
-                    </button>
-                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="profile" type="button">
-                        <i class="fas fa-user mr-2"></i>Profile
-                    </button>
-                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="skills" type="button">
-                        <i class="fas fa-code mr-2"></i>Skills
-                    </button>
-                    <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="settings" type="button">
-                        <i class="fas fa-cog mr-2"></i>Settings
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Dashboard Content -->
-            <div id="dashboard-content">
-                <!-- Projects Management -->
-                <div id="projects-tab" class="dashboard-content">
-                    <div class="glass-effect rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold font-display">Project Management</h3>
-                            <button id="add-project-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                                <i class="fas fa-plus mr-2"></i>Add Project
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-left border-b border-gray-700">
-                                        <th class="pb-4">Title</th>
-                                        <th class="pb-4">Category</th>
-                                        <th class="pb-4">Status</th>
-                                        <th class="pb-4">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="projects-table">
-                                    <!-- Projects will be dynamically added here -->
-                                </tbody>
-                            </table>
-                        </div>
+                <!-- Dashboard Tabs -->
+                <div class="mb-8">
+                    <div class="flex space-x-4 border-b border-gray-700">
+                        <button class="dashboard-tab active px-4 py-2 text-primary-400 border-b-2 border-primary-400 cursor-pointer" data-tab="projects" type="button">
+                            <i class="fas fa-project-diagram mr-2"></i>Projects
+                        </button>
+                        <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="profile" type="button">
+                            <i class="fas fa-user mr-2"></i>Profile
+                        </button>
+                        <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="skills" type="button">
+                            <i class="fas fa-code mr-2"></i>Skills
+                        </button>
+                        <button class="dashboard-tab px-4 py-2 text-gray-400 hover:text-primary-400 cursor-pointer" data-tab="settings" type="button">
+                            <i class="fas fa-cog mr-2"></i>Settings
+                        </button>
                     </div>
                 </div>
+                
+                <!-- Dashboard Content -->
+                <div id="dashboard-content">
+                    <!-- Projects Management -->
+                    <div id="projects-tab" class="dashboard-content">
+                        <div class="glass-effect rounded-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold font-display">Project Management</h3>
+                                <button id="add-project-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>Add Project
+                                </button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="text-left border-b border-gray-700">
+                                            <th class="pb-4">Title</th>
+                                            <th class="pb-4">Category</th>
+                                            <th class="pb-4">Status</th>
+                                            <th class="pb-4">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="projects-table">
+                                        <!-- Projects will be dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
-                <!-- Profile Management -->
-                <div id="profile-tab" class="dashboard-content hidden">
-                    <div class="glass-effect rounded-xl p-6">
-                        <h3 class="text-xl font-bold mb-6 font-display">Profile Settings</h3>
-                        <form id="profile-form" class="space-y-6">
-                            <div class="flex items-center space-x-6">
-                                <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary-500/20">
-                                    <img id="profile-preview" src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+                    <!-- Profile Management -->
+                    <div id="profile-tab" class="dashboard-content hidden">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-6 font-display">Profile Settings</h3>
+                            <form id="profile-form" class="space-y-6">
+                                <div class="flex items-center space-x-6">
+                                    <div class="w-32 h-32 rounded-full overflow-hidden border-4 border-primary-500/20">
+                                        <img id="profile-preview" src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
+                                    </div>
+                                    <div>
+                                        <input type="file" id="profile-image" accept="image/*" class="hidden">
+                                        <button type="button" onclick="document.getElementById('profile-image').click()" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
+                                            Change Profile Picture
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Full Name</label>
+                                        <input type="text" name="name" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Bayezid">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Title</label>
+                                        <input type="text" name="title" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Aspiring Data Scientist">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Email</label>
+                                        <input type="email" name="email" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="hrbayezid@gmail.com">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium mb-2">Phone</label>
+                                        <input type="tel" name="phone" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="+8801648752209">
+                                    </div>
                                 </div>
                                 <div>
-                                    <input type="file" id="profile-image" accept="image/*" class="hidden">
-                                    <button type="button" onclick="document.getElementById('profile-image').click()" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
-                                        Change Profile Picture
+                                    <label class="block text-sm font-medium mb-2">Bio</label>
+                                    <textarea name="bio" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" rows="4">Aspiring Data Scientist | Building the Future with Code</textarea>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                        Save Changes
                                     </button>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Full Name</label>
-                                    <input type="text" name="name" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Bayezid">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Title</label>
-                                    <input type="text" name="title" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Aspiring Data Scientist">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Email</label>
-                                    <input type="email" name="email" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="hrbayezid@gmail.com">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium mb-2">Phone</label>
-                                    <input type="tel" name="phone" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="+8801648752209">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-2">Bio</label>
-                                <textarea name="bio" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" rows="4">Aspiring Data Scientist | Building the Future with Code</textarea>
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                                    Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- Skills Management -->
-                <div id="skills-tab" class="dashboard-content hidden">
-                    <div class="glass-effect rounded-xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold font-display">Skills Management</h3>
-                            <button id="add-skill-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                                <i class="fas fa-plus mr-2"></i>Add Skill
-                            </button>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead>
-                                    <tr class="text-left border-b border-gray-700">
-                                        <th class="pb-4">Name</th>
-                                        <th class="pb-4">Category</th>
-                                        <th class="pb-4">Proficiency</th>
-                                        <th class="pb-4">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="skills-table">
-                                    <!-- Skills will be dynamically added here -->
-                                </tbody>
-                            </table>
+                            </form>
                         </div>
                     </div>
-                </div>
 
-                <!-- Settings Management -->
-                <div id="settings-tab" class="dashboard-content hidden">
-                    <div class="glass-effect rounded-xl p-6">
-                        <h3 class="text-xl font-bold mb-6 font-display">General Settings</h3>
-                        <form id="settings-form" class="space-y-6">
-                            <div class="space-y-4">
-                                <h4 class="text-lg font-semibold">Appearance</h4>
-                                <div class="flex items-center space-x-4">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="theme" value="dark" checked class="form-radio text-primary-500">
-                                        <span>Dark Mode</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="radio" name="theme" value="light" class="form-radio text-primary-500">
-                                        <span>Light Mode</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-lg font-semibold">Notifications</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="email_notifications" checked class="form-checkbox text-primary-500">
-                                        <span>Email Notifications</span>
-                                    </label>
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="project_updates" checked class="form-checkbox text-primary-500">
-                                        <span>Project Updates</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-lg font-semibold">Privacy</h4>
-                                <div class="space-y-2">
-                                    <label class="flex items-center space-x-2">
-                                        <input type="checkbox" name="show_email" checked class="form-checkbox text-primary-500">
-                                        <span>Show Email on Profile</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="flex justify-end">
-                                <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                                    Save Settings
+                    <!-- Skills Management -->
+                    <div id="skills-tab" class="dashboard-content hidden">
+                        <div class="glass-effect rounded-xl p-6">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold font-display">Skills Management</h3>
+                                <button id="add-skill-btn" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                    <i class="fas fa-plus mr-2"></i>Add Skill
                                 </button>
                             </div>
-                        </form>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="text-left border-b border-gray-700">
+                                            <th class="pb-4">Name</th>
+                                            <th class="pb-4">Category</th>
+                                            <th class="pb-4">Proficiency</th>
+                                            <th class="pb-4">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="skills-table">
+                                        <!-- Skills will be dynamically added here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Settings Management -->
+                    <div id="settings-tab" class="dashboard-content hidden">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-xl font-bold mb-6 font-display">General Settings</h3>
+                            <form id="settings-form" class="space-y-6">
+                                <div class="space-y-4">
+                                    <h4 class="text-lg font-semibold">Appearance</h4>
+                                    <div class="flex items-center space-x-4">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="theme" value="dark" checked class="form-radio text-primary-500">
+                                            <span>Dark Mode</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="radio" name="theme" value="light" class="form-radio text-primary-500">
+                                            <span>Light Mode</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <h4 class="text-lg font-semibold">Notifications</h4>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" name="email_notifications" checked class="form-checkbox text-primary-500">
+                                            <span>Email Notifications</span>
+                                        </label>
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" name="project_updates" checked class="form-checkbox text-primary-500">
+                                            <span>Project Updates</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <h4 class="text-lg font-semibold">Privacy</h4>
+                                    <div class="space-y-2">
+                                        <label class="flex items-center space-x-2">
+                                            <input type="checkbox" name="show_email" checked class="form-checkbox text-primary-500">
+                                            <span>Show Email on Profile</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                                        Save Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
+
+    <footer role="contentinfo" class="text-center py-8">
+        <p>&copy; 2025 Bayezid. All rights reserved.</p>
+    </footer>
 
     <!-- Back to Top Button -->
     <button id="back-to-top" class="fixed bottom-8 right-8 glass-effect p-3 rounded-full shadow-lg hover:bg-white/10 transition duration-300 hidden">
@@ -792,7 +818,10 @@
     </button>
 
     <!-- Scripts -->
+    <script src="js/github-service.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/contact.js"></script>
 
     <!-- Auth Modal -->
     <div id="auth-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
@@ -856,8 +885,31 @@
         </div>
     </div>
 
-    <!-- Add the auth.js script before the closing body tag -->
-    <script src="js/auth.js"></script>
-    <script src="js/contact.js"></script>
+    <!-- GitHub Token Modal -->
+    <div id="github-token-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="glass-effect p-8 rounded-xl w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold gradient-text">GitHub Setup</h2>
+                <button onclick="document.getElementById('github-token-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="github-token-form" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">GitHub Token</label>
+                    <input type="password" id="github-token" required 
+                        class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="Enter your GitHub token">
+                    <p class="mt-2 text-sm text-gray-400">
+                        This token will be used to save your portfolio data. You can generate a token from your 
+                        <a href="https://github.com/settings/tokens" target="_blank" class="text-primary-400 hover:underline">GitHub settings</a>.
+                    </p>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
+                    Save Token
+                </button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

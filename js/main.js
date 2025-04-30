@@ -16,6 +16,24 @@ const utils = {
         element.addEventListener('animationend', () => {
             element.classList.remove(animation);
         }, { once: true });
+    },
+    cleanup: () => {
+        // Clear all intervals and timeouts more reliably
+        const highestId = setTimeout(() => {}, 0);
+        for (let i = 0; i <= highestId; i++) {
+            clearInterval(i);
+            clearTimeout(i);
+        }
+        // Clear any requestAnimationFrame
+        const highestRafId = requestAnimationFrame(() => {});
+        for (let i = 0; i <= highestRafId; i++) {
+            cancelAnimationFrame(i);
+        }
+    },
+    removeEventListeners: (element, events = []) => {
+        events.forEach(event => {
+            element.replaceWith(element.cloneNode(true));
+        });
     }
 };
 
@@ -25,6 +43,9 @@ class Navigation {
         this.mobileMenuButton = document.getElementById('mobile-menu-button');
         this.mobileMenu = document.getElementById('mobile-menu');
         this.backToTopButton = document.getElementById('back-to-top');
+        this.observers = new Map(); // Store observers for cleanup
+        this.boundHandleClickOutside = this.handleClickOutside.bind(this);
+        this.boundHandleScroll = this.handleScroll.bind(this);
         this.init();
     }
 
@@ -33,23 +54,45 @@ class Navigation {
         this.setupSmoothScroll();
         this.setupBackToTop();
         this.setupIntersectionObserver();
+        this.setupAccessibility();
+    }
+
+    setupAccessibility() {
+        // Add ARIA labels and roles
+        this.mobileMenuButton?.setAttribute('aria-label', 'Toggle mobile menu');
+        this.mobileMenuButton?.setAttribute('aria-expanded', 'false');
+        this.mobileMenu?.setAttribute('role', 'navigation');
+        this.mobileMenu?.setAttribute('aria-label', 'Mobile navigation menu');
+        this.backToTopButton?.setAttribute('aria-label', 'Scroll to top');
+    }
+
+    handleClickOutside(e) {
+        if (!this.mobileMenu?.contains(e.target) && !this.mobileMenuButton?.contains(e.target)) {
+            this.mobileMenu?.classList.add('hidden');
+            this.mobileMenuButton?.setAttribute('aria-expanded', 'false');
+        }
+    }
+
+    handleScroll() {
+        this.mobileMenu?.classList.add('hidden');
+        this.mobileMenuButton?.setAttribute('aria-expanded', 'false');
     }
 
     setupMobileMenu() {
+        if (!this.mobileMenuButton || !this.mobileMenu) return;
+
         this.mobileMenuButton.addEventListener('click', (e) => {
             e.stopPropagation();
+            const isExpanded = !this.mobileMenu.classList.contains('hidden');
             this.mobileMenu.classList.toggle('hidden');
+            this.mobileMenuButton.setAttribute('aria-expanded', (!isExpanded).toString());
+            
+            // Update mobile menu visibility state for screen readers
+            this.mobileMenu.setAttribute('aria-hidden', isExpanded.toString());
         });
 
-        document.addEventListener('click', (e) => {
-            if (!this.mobileMenu.contains(e.target) && !this.mobileMenuButton.contains(e.target)) {
-                this.mobileMenu.classList.add('hidden');
-            }
-        });
-
-        document.addEventListener('scroll', () => {
-            this.mobileMenu.classList.add('hidden');
-        });
+        document.addEventListener('click', this.boundHandleClickOutside);
+        document.addEventListener('scroll', this.boundHandleScroll);
 
         this.mobileMenu.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -66,20 +109,26 @@ class Navigation {
                         behavior: 'smooth',
                         block: 'start'
                     });
+                    // Update URL without jumping
+                    history.pushState(null, '', this.getAttribute('href'));
                 }
             });
         });
     }
 
     setupBackToTop() {
-        window.addEventListener('scroll', utils.debounce(() => {
+        if (!this.backToTopButton) return;
+
+        const handleScroll = utils.debounce(() => {
             if (window.pageYOffset > 300) {
                 this.backToTopButton.classList.remove('hidden');
                 utils.animateElement(this.backToTopButton, 'animate-fade-in');
             } else {
                 this.backToTopButton.classList.add('hidden');
             }
-        }, 100));
+        }, 100);
+
+        window.addEventListener('scroll', handleScroll);
 
         this.backToTopButton.addEventListener('click', () => {
             window.scrollTo({
@@ -90,31 +139,39 @@ class Navigation {
     }
 
     setupIntersectionObserver() {
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('.nav-link');
-        
         const options = {
             root: null,
             rootMargin: '-20% 0px -80% 0px',
-            threshold: 0
+            threshold: [0, 0.25, 0.5, 0.75, 1]
         };
 
-        const observer = new IntersectionObserver((entries) => {
+        this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     const id = entry.target.getAttribute('id');
                     this.highlightNavLink(id);
+
+                    if (entry.intersectionRatio > 0.5) {
+                        entry.target.classList.add('animate-fade-in');
+                    }
                 }
             });
         }, options);
 
-        sections.forEach(section => observer.observe(section));
+        document.querySelectorAll('section[id]').forEach(section => {
+            this.observer.observe(section);
+            this.observers.set(section, this.observer);
+        });
 
-        // Add highlight class to nav links
+        const navLinks = document.querySelectorAll('.nav-link');
         navLinks.forEach(link => {
             link.addEventListener('click', () => {
-                navLinks.forEach(l => l.classList.remove('active'));
+                navLinks.forEach(l => {
+                    l.classList.remove('active');
+                    l.setAttribute('aria-current', 'false');
+                });
                 link.classList.add('active');
+                link.setAttribute('aria-current', 'true');
             });
         });
     }
@@ -123,9 +180,25 @@ class Navigation {
         const navLinks = document.querySelectorAll('.nav-link');
         navLinks.forEach(link => {
             link.classList.remove('active');
+            link.setAttribute('aria-current', 'false');
             if (link.getAttribute('href') === `#${sectionId}`) {
                 link.classList.add('active');
+                link.setAttribute('aria-current', 'true');
             }
+        });
+    }
+
+    cleanup() {
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+        this.observers.clear();
+
+        document.removeEventListener('click', this.boundHandleClickOutside);
+        document.removeEventListener('scroll', utils.debounce(this.boundHandleScroll, 100));
+
+        document.querySelectorAll('.nav-link').forEach(link => {
+            utils.removeEventListeners(link, ['click']);
         });
     }
 }
@@ -133,18 +206,28 @@ class Navigation {
 // Project Management
 class ProjectManager {
     constructor() {
-        // Initialize with empty projects array if none exist in localStorage
-        this.projects = JSON.parse(localStorage.getItem('projects')) || [];
-
+        this.projects = [];
         this.projectsTable = document.getElementById('projects-table');
         this.projectsGrid = document.getElementById('projects-grid');
         this.addProjectBtn = document.getElementById('add-project-btn');
         this.init();
     }
 
-    init() {
-        this.renderProjects();
+    async init() {
+        await this.loadProjects();
         this.setupEventListeners();
+    }
+
+    async loadProjects() {
+        try {
+            const data = await window.githubService.getFileContent('data/projects.json');
+            this.projects = data || [];
+            this.renderProjects();
+        } catch (error) {
+            console.error('Failed to load projects:', error);
+            this.projects = JSON.parse(localStorage.getItem('projects')) || [];
+            this.renderProjects();
+        }
     }
 
     setupEventListeners() {
@@ -213,25 +296,6 @@ class ProjectManager {
         `;
         document.body.appendChild(modal);
 
-        // Add custom styles for select dropdowns
-        const style = document.createElement('style');
-        style.textContent = `
-            select {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 0.5rem center;
-                background-size: 1.5em 1.5em;
-                padding-right: 2.5rem;
-            }
-            select option {
-                background-color: #1a1a1a;
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
-
-        // Setup image upload preview
         const imageInput = modal.querySelector('#project-image-input');
         const imagePreview = modal.querySelector('#image-preview');
         const imageFilename = modal.querySelector('#image-filename');
@@ -261,7 +325,6 @@ class ProjectManager {
                 link: formData.get('link')
             };
 
-            // Handle image upload
             const imageFile = formData.get('imageFile');
             if (imageFile && imageFile.size > 0) {
                 const reader = new FileReader();
@@ -269,71 +332,76 @@ class ProjectManager {
                     projectData.image = e.target.result;
                     this.saveProject(project, projectData);
                     modal.remove();
-                    style.remove();
                 };
                 reader.readAsDataURL(imageFile);
             } else {
-                // If no new image is selected, keep the existing one
                 projectData.image = project?.image || '';
                 this.saveProject(project, projectData);
                 modal.remove();
-                style.remove();
             }
         });
     }
 
-    saveProject(project, projectData) {
+    async saveProject(project, projectData) {
         if (project) {
-            this.updateProject(project.id, projectData);
+            await this.updateProject(project.id, projectData);
         } else {
-            this.addProject(projectData);
+            await this.addProject(projectData);
         }
     }
 
-    addProject(projectData) {
+    async addProject(projectData) {
         const project = {
             id: Date.now(),
             ...projectData
         };
         this.projects.push(project);
-        this.saveProjects();
+        await this.saveProjects();
         this.renderProjects();
     }
 
-    updateProject(id, projectData) {
+    async updateProject(id, projectData) {
         const index = this.projects.findIndex(p => p.id === id);
         if (index !== -1) {
             this.projects[index] = { ...this.projects[index], ...projectData };
-            this.saveProjects();
+            await this.saveProjects();
             this.renderProjects();
         }
     }
 
-    deleteProject(id) {
+    async deleteProject(id) {
         this.projects = this.projects.filter(p => p.id !== id);
-        this.saveProjects();
+        await this.saveProjects();
         this.renderProjects();
     }
 
-    saveProjects() {
-        localStorage.setItem('projects', JSON.stringify(this.projects));
+    async saveProjects() {
+        try {
+            await window.githubService.updateFile('data/projects.json', this.projects);
+        } catch (error) {
+            console.error('Failed to save projects to GitHub:', error);
+            localStorage.setItem('projects', JSON.stringify(this.projects));
+        }
     }
 
     renderProjects() {
-        // Ensure we have references to the DOM elements
         if (!this.projectsGrid || !this.projectsTable) {
             console.error('Projects containers not found');
             return;
         }
 
-        // Render projects grid (public view)
+        // Update project grid rendering with optimized image loading
         this.projectsGrid.innerHTML = this.projects.map(project => `
             <div class="project-card glass-effect rounded-lg overflow-hidden transform hover:scale-105 transition duration-300 w-[85vw] sm:w-full mx-auto">
                 <div class="relative w-full h-56">
                     <img src="${project.image || 'https://via.placeholder.com/800x450'}" 
                         alt="${project.title}" 
                         class="absolute inset-0 w-full h-full object-cover object-center"
-                        loading="lazy">
+                        loading="lazy"
+                        onerror="this.onerror=null; this.src='https://via.placeholder.com/800x450'; this.alt='Project thumbnail unavailable'"
+                        onload="this.classList.add('opacity-100')"
+                        style="opacity: 0; transition: opacity 0.3s ease-in-out;">
+                    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
                 </div>
                 <div class="p-4">
                     <h3 class="text-lg font-bold font-display truncate">${project.title}</h3>
@@ -346,9 +414,11 @@ class ProjectManager {
                         }">
                             ${project.status}
                         </span>
-                        <a href="${project.link || '#'}" target="_blank" rel="noopener noreferrer"
-                            class="inline-block px-3 py-1 text-sm bg-gradient-to-r from-primary-500 to-purple-500 
-                            rounded-full hover:from-primary-600 hover:to-purple-600 transition">
+                        <a href="${project.link || '#'}" 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="inline-block px-3 py-1 text-sm bg-gradient-to-r from-primary-500 to-purple-500 
+                           rounded-full hover:from-primary-600 hover:to-purple-600 transition">
                             View Project
                         </a>
                     </div>
@@ -356,7 +426,6 @@ class ProjectManager {
             </div>
         `).join('');
 
-        // Render dashboard table
         if (this.projectsTable) {
             this.projectsTable.innerHTML = this.projects.map(project => {
                 const safeProject = { ...project };
@@ -388,38 +457,56 @@ class ProjectManager {
             }).join('');
         }
     }
+
+    cleanup() {
+        if (this.fileReader) {
+            this.fileReader.abort();
+        }
+        document.querySelectorAll('#projects-table button').forEach(button => {
+            utils.removeEventListeners(button, ['click']);
+        });
+    }
 }
 
 // Skills Management
 class SkillsManager {
     constructor() {
-        this.skills = JSON.parse(localStorage.getItem('skills') || '[]');
-        
-        // If no skills exist in localStorage, initialize with default skills
-        if (this.skills.length === 0) {
-            this.skills = [
-                { id: 1, name: 'Python', category: 'programming-languages', proficiency: 80 },
-                { id: 2, name: 'JavaScript', category: 'programming-languages', proficiency: 75 },
-                { id: 3, name: 'SQL', category: 'programming-languages', proficiency: 70 },
-                { id: 4, name: 'Pandas', category: 'data-science-tools', proficiency: 85 },
-                { id: 5, name: 'NumPy', category: 'data-science-tools', proficiency: 80 },
-                { id: 6, name: 'Machine Learning', category: 'data-science-tools', proficiency: 75 },
-                { id: 7, name: 'HTML', category: 'web-development', proficiency: 90 },
-                { id: 8, name: 'Tailwind CSS', category: 'web-development', proficiency: 85 },
-                { id: 9, name: 'Matplotlib', category: 'data-visualization', proficiency: 80 },
-                { id: 10, name: 'Seaborn', category: 'data-visualization', proficiency: 75 }
-            ];
-            this.saveSkills();
-        }
-        
+        this.skills = [];
         this.skillsTable = document.getElementById('skills-table');
         this.addSkillBtn = document.getElementById('add-skill-btn');
         this.init();
     }
 
-    init() {
-        this.renderSkills();
+    async init() {
+        await this.loadSkills();
         this.setupEventListeners();
+    }
+
+    async loadSkills() {
+        try {
+            const data = await window.githubService.getFileContent('data/skills.json');
+            this.skills = data || [];
+            if (this.skills.length === 0) {
+                this.skills = [
+                    { id: 1, name: 'Python', category: 'programming-languages', proficiency: 80 },
+                    { id: 2, name: 'JavaScript', category: 'programming-languages', proficiency: 75 },
+                    { id: 3, name: 'SQL', category: 'programming-languages', proficiency: 70 },
+                    { id: 4, name: 'Pandas', category: 'data-science-tools', proficiency: 85 },
+                    { id: 5, name: 'NumPy', category: 'data-science-tools', proficiency: 80 },
+                    { id: 6, name: 'Machine Learning', category: 'data-science-tools', proficiency: 75 },
+                    { id: 7, name: 'HTML', category: 'web-development', proficiency: 90 },
+                    { id: 8, name: 'Tailwind CSS', category: 'web-development', proficiency: 85 },
+                    { id: 9, name: 'Matplotlib', category: 'data-visualization', proficiency: 80 },
+                    { id: 10, name: 'Seaborn', category: 'data-visualization', proficiency: 75 }
+                ];
+                await this.saveSkills();
+            }
+            this.renderSkills();
+        } catch (error) {
+            console.error('Failed to load skills:', error);
+            this.skills = JSON.parse(localStorage.getItem('skills')) || [];
+            this.renderSkills();
+        }
     }
 
     setupEventListeners() {
@@ -431,8 +518,7 @@ class SkillsManager {
             console.error('Skills table element not found!');
             return;
         }
-        
-        // Create category groups for skills section
+
         const skillsByCategory = this.skills.reduce((acc, skill) => {
             if (!acc[skill.category]) {
                 acc[skill.category] = [];
@@ -441,7 +527,6 @@ class SkillsManager {
             return acc;
         }, {});
 
-        // Render skills in dashboard table
         this.skillsTable.innerHTML = this.skills.map(skill => {
             const safeSkill = {
                 id: skill.id,
@@ -449,7 +534,7 @@ class SkillsManager {
                 category: skill.category,
                 proficiency: skill.proficiency
             };
-            
+
             return `
                 <tr class="border-b border-gray-700">
                     <td class="py-4">${skill.name}</td>
@@ -475,7 +560,6 @@ class SkillsManager {
             `;
         }).join('');
 
-        // Update public skills section
         const skillsSection = document.querySelector('#skills .grid');
         if (skillsSection) {
             skillsSection.innerHTML = Object.entries(skillsByCategory).map(([category, skills]) => `
@@ -544,67 +628,59 @@ class SkillsManager {
         `;
         document.body.appendChild(modal);
 
-        // Add custom styles for select dropdown
-        const style = document.createElement('style');
-        style.textContent = `
-            select {
-                appearance: none;
-                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23ffffff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-                background-repeat: no-repeat;
-                background-position: right 0.5rem center;
-                background-size: 1.5em 1.5em;
-                padding-right: 2.5rem;
-            }
-            select option {
-                background-color: #1a1a1a;
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
-
         const form = modal.querySelector('form');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(form);
             const skillData = Object.fromEntries(formData.entries());
-            
+
             if (skill) {
                 this.updateSkill(skill.id, skillData);
             } else {
                 this.addSkill(skillData);
             }
             modal.remove();
-            style.remove();
         });
     }
 
-    addSkill(skillData) {
+    async addSkill(skillData) {
         const skill = {
             id: Date.now(),
             ...skillData
         };
         this.skills.push(skill);
-        this.saveSkills();
+        await this.saveSkills();
         this.renderSkills();
     }
 
-    updateSkill(id, skillData) {
+    async updateSkill(id, skillData) {
         const index = this.skills.findIndex(s => s.id === id);
         if (index !== -1) {
             this.skills[index] = { ...this.skills[index], ...skillData };
-            this.saveSkills();
+            await this.saveSkills();
             this.renderSkills();
         }
     }
 
-    deleteSkill(id) {
+    async deleteSkill(id) {
         this.skills = this.skills.filter(s => s.id !== id);
-        this.saveSkills();
+        await this.saveSkills();
         this.renderSkills();
     }
 
-    saveSkills() {
-        localStorage.setItem('skills', JSON.stringify(this.skills));
+    async saveSkills() {
+        try {
+            await window.githubService.updateFile('data/skills.json', this.skills);
+        } catch (error) {
+            console.error('Failed to save skills to GitHub:', error);
+            localStorage.setItem('skills', JSON.stringify(this.skills));
+        }
+    }
+
+    cleanup() {
+        document.querySelectorAll('#skills-table button').forEach(button => {
+            utils.removeEventListeners(button, ['click']);
+        });
     }
 }
 
@@ -639,13 +715,9 @@ class ContactForm {
         const body = `From: ${email}\n\nMessage:\n${message}`;
         const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=hrbayezid@gmail.com&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body).replace(/%0A/g, '%0D%0A')}`;
 
-        // Show success animation
         this.showSuccessAnimation();
-        
-        // Reset form
         this.form.reset();
-        
-        // Open Gmail after animation
+
         setTimeout(() => {
             window.open(gmailUrl, '_blank');
         }, 2000);
@@ -672,6 +744,20 @@ class ContactForm {
         setTimeout(() => {
             animation.remove();
         }, 3000);
+    }
+
+    cleanup() {
+        const form = document.querySelector('#contact form');
+        if (form) {
+            utils.removeEventListeners(form, ['submit']);
+        }
+
+        ['from-email', 'contact-message'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                utils.removeEventListeners(input, ['input']);
+            }
+        });
     }
 }
 
@@ -705,13 +791,11 @@ class Dashboard {
     }
 
     setupMenu() {
-        // Toggle menu on button click
         this.menuButton.addEventListener('click', (e) => {
             e.stopPropagation();
             this.menu.classList.toggle('hidden');
         });
 
-        // Close menu when clicking outside
         document.addEventListener('click', (e) => {
             if (!this.menu.contains(e.target) && !this.menuButton.contains(e.target)) {
                 this.menu.classList.add('hidden');
@@ -724,21 +808,17 @@ class Dashboard {
             tab.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
-                // Remove active class from all tabs
+
                 this.tabs.forEach(t => {
                     t.classList.remove('active', 'text-primary-400', 'border-primary-400');
                     t.classList.add('text-gray-400');
                 });
-                
-                // Hide all content
+
                 this.contents.forEach(c => c.classList.add('hidden'));
-                
-                // Add active class to clicked tab
+
                 tab.classList.remove('text-gray-400');
                 tab.classList.add('active', 'text-primary-400', 'border-primary-400');
-                
-                // Show corresponding content
+
                 const tabId = tab.getAttribute('data-tab');
                 const content = document.getElementById(`${tabId}-tab`);
                 if (content) {
@@ -754,7 +834,7 @@ class Dashboard {
                 e.preventDefault();
                 const formData = new FormData(this.profileForm);
                 const profileData = Object.fromEntries(formData.entries());
-                
+
                 localStorage.setItem('profile', JSON.stringify(profileData));
                 this.updateHeroSection(profileData);
                 this.showSuccessMessage('Profile updated successfully!');
@@ -767,14 +847,13 @@ class Dashboard {
                 e.preventDefault();
                 const formData = new FormData(this.settingsForm);
                 const settingsData = Object.fromEntries(formData.entries());
-                
-                // Update notification settings
+
                 this.notificationSettings = {
                     email_notifications: settingsData.email_notifications === 'on',
                     project_updates: settingsData.project_updates === 'on',
                     show_email: settingsData.show_email === 'on'
                 };
-                
+
                 localStorage.setItem('settings', JSON.stringify(settingsData));
                 localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
                 this.applySettings();
@@ -782,7 +861,6 @@ class Dashboard {
                 this.handleSettingsUpdate();
             });
 
-            // Real-time theme switching
             const themeRadios = this.settingsForm.querySelectorAll('input[name="theme"]');
             themeRadios.forEach(radio => {
                 radio.addEventListener('change', () => {
@@ -801,8 +879,7 @@ class Dashboard {
 
     applySettings() {
         const settings = JSON.parse(localStorage.getItem('settings') || '{}');
-        
-        // Apply theme
+
         if (settings.theme === 'light') {
             document.documentElement.classList.remove('dark');
             document.body.classList.remove('dark');
@@ -811,13 +888,11 @@ class Dashboard {
             document.body.classList.add('dark');
         }
 
-        // Apply email visibility
         const emailSection = document.querySelector('#contact .space-y-1:first-child');
         if (emailSection) {
             emailSection.style.display = settings.show_email ? 'block' : 'none';
         }
 
-        // Update form checkboxes to match saved settings
         if (this.settingsForm) {
             Object.entries(settings).forEach(([key, value]) => {
                 const input = this.settingsForm.querySelector(`[name="${key}"]`);
@@ -831,7 +906,6 @@ class Dashboard {
             });
         }
 
-        // Update glass effect elements
         const glassElements = document.querySelectorAll('.glass-effect');
         glassElements.forEach(element => {
             if (settings.theme === 'light') {
@@ -843,7 +917,6 @@ class Dashboard {
             }
         });
 
-        // Update text colors
         const textElements = document.querySelectorAll('.text-gray-300, .text-gray-400');
         textElements.forEach(element => {
             if (settings.theme === 'light') {
@@ -855,7 +928,6 @@ class Dashboard {
             }
         });
 
-        // Update form elements
         const formElements = document.querySelectorAll('input, textarea, select');
         formElements.forEach(element => {
             if (settings.theme === 'light') {
@@ -867,7 +939,6 @@ class Dashboard {
             }
         });
 
-        // Update borders
         const borderElements = document.querySelectorAll('.border-gray-700');
         borderElements.forEach(element => {
             if (settings.theme === 'light') {
@@ -879,19 +950,16 @@ class Dashboard {
     }
 
     updateHeroSection(profileData) {
-        // Update hero section name
         const heroName = document.querySelector('#home h1');
         if (heroName) {
             heroName.textContent = profileData.name || 'Bayezid';
         }
 
-        // Update hero section title
         const heroTitle = document.querySelector('#home p');
         if (heroTitle) {
             heroTitle.textContent = profileData.title || 'Aspiring Data Scientist | Building the Future with Code';
         }
 
-        // Update contact section email
         const contactEmail = document.querySelector('#contact .text-gray-300');
         if (contactEmail) {
             contactEmail.textContent = profileData.email || 'hrbayezid@gmail.com';
@@ -905,19 +973,14 @@ class Dashboard {
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        // Update profile preview in dashboard
                         this.profilePreview.src = e.target.result;
-                        
-                        // Update hero section profile image
+
                         const heroProfileImage = document.querySelector('#home .rounded-full img');
                         if (heroProfileImage) {
                             heroProfileImage.src = e.target.result;
                         }
-                        
-                        // Save to localStorage
+
                         localStorage.setItem('profileImage', e.target.result);
-                        
-                        // Show success message
                         this.showSuccessMessage('Profile picture updated successfully!');
                     };
                     reader.readAsDataURL(file);
@@ -942,7 +1005,6 @@ class Dashboard {
     }
 
     loadSavedData() {
-        // Load profile data
         if (this.profileForm) {
             const savedProfile = localStorage.getItem('profile');
             if (savedProfile) {
@@ -954,7 +1016,6 @@ class Dashboard {
             }
         }
 
-        // Load settings
         if (this.settingsForm) {
             const savedSettings = localStorage.getItem('settings');
             if (savedSettings) {
@@ -972,13 +1033,12 @@ class Dashboard {
             }
         }
 
-        // Load profile image
         const savedImage = localStorage.getItem('profileImage');
         if (savedImage) {
             if (this.profilePreview) {
                 this.profilePreview.src = savedImage;
             }
-            
+
             const heroProfileImage = document.querySelector('#home .rounded-full img');
             if (heroProfileImage) {
                 heroProfileImage.src = savedImage;
@@ -987,7 +1047,6 @@ class Dashboard {
     }
 
     setupNotificationSystem() {
-        // Request notification permission
         if ('Notification' in window) {
             Notification.requestPermission().then(permission => {
                 if (permission === 'granted') {
@@ -996,13 +1055,11 @@ class Dashboard {
             });
         }
 
-        // Load saved notification settings
         const savedSettings = localStorage.getItem('notificationSettings');
         if (savedSettings) {
             this.notificationSettings = JSON.parse(savedSettings);
         }
 
-        // Update form checkboxes based on saved settings
         if (this.settingsForm) {
             Object.entries(this.notificationSettings).forEach(([key, value]) => {
                 const input = this.settingsForm.querySelector(`[name="${key}"]`);
@@ -1045,23 +1102,65 @@ class Dashboard {
             body: 'Your settings have been saved'
         });
     }
+
+    cleanup() {
+        if (this.notificationChecker) {
+            clearInterval(this.notificationChecker);
+        }
+
+        // Clean up menu related listeners
+        if (this.menuButton) {
+            this.menuButton.replaceWith(this.menuButton.cloneNode(true));
+        }
+        
+        // Clean up document click listener
+        document.removeEventListener('click', (e) => {
+            if (!this.menu?.contains(e.target) && !this.menuButton?.contains(e.target)) {
+                this.menu?.classList.add('hidden');
+            }
+        });
+
+        // Clean up form listeners
+        ['profile-form', 'settings-form'].forEach(id => {
+            const form = document.getElementById(id);
+            if (form) {
+                form.replaceWith(form.cloneNode(true));
+            }
+        });
+
+        // Clean up tab listeners
+        this.tabs?.forEach(tab => {
+            tab.replaceWith(tab.cloneNode(true));
+        });
+
+        // Clean up profile image listener
+        if (this.profileImage) {
+            this.profileImage.replaceWith(this.profileImage.cloneNode(true));
+        }
+    }
 }
 
 // Initialize everything when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded');
-    
-    // Initialize Dashboard first
-    const dashboard = new Dashboard();
-    console.log('Dashboard initialized:', dashboard);
-    
-    // Initialize other components
-    window.projectManager = new ProjectManager();
-    window.skillsManager = new SkillsManager();
-    console.log('SkillsManager initialized:', window.skillsManager);
-    new Navigation();
-    new ContactForm();
-    
-    // Make dashboard globally accessible
-    window.dashboard = dashboard;
+    const components = {
+        dashboard: new Dashboard(),
+        projectManager: new ProjectManager(),
+        skillsManager: new SkillsManager(),
+        navigation: new Navigation(),
+        contactForm: new ContactForm()
+    };
+
+    Object.entries(components).forEach(([key, component]) => {
+        window[key] = component;
+    });
+
+    window.addEventListener('beforeunload', () => {
+        Object.values(components).forEach(component => {
+            if (typeof component.cleanup === 'function') {
+                component.cleanup();
+            }
+        });
+
+        utils.cleanup();
+    });
 });

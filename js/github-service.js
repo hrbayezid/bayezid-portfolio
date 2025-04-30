@@ -17,6 +17,44 @@ class GitHubService {
         sessionStorage.setItem('github_token', token);
     }
 
+    async validateToken() {
+        try {
+            const response = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Token validation failed: ${error.message}`);
+            }
+
+            const userData = await response.json();
+            // Verify repository access
+            const repoResponse = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}`, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+
+            if (!repoResponse.ok) {
+                throw new Error('Token does not have access to the repository');
+            }
+
+            return {
+                valid: true,
+                username: userData.login,
+                repoAccess: true
+            };
+        } catch (error) {
+            console.error('Token validation error:', error);
+            throw error;
+        }
+    }
+
     async getFileContent(path) {
         if (!this.token) {
             throw new Error('GitHub token not set');
@@ -46,15 +84,22 @@ class GitHubService {
         }
 
         try {
-            // First get the current file to get its SHA
-            const currentFile = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
-                headers: {
-                    'Authorization': `Bearer ${this.token}`,
-                    'Accept': 'application/vnd.github.v3+json'
-                }
-            }).then(res => res.json());
+            let sha;
+            // First try to get the current file
+            try {
+                const currentFile = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                }).then(res => res.json());
+                sha = currentFile.sha;
+            } catch (error) {
+                // File doesn't exist yet, that's ok
+                sha = null;
+            }
 
-            // Update the file
+            // Create or update the file
             const response = await fetch(`https://api.github.com/repos/${this.owner}/${this.repo}/contents/${path}`, {
                 method: 'PUT',
                 headers: {
@@ -63,13 +108,16 @@ class GitHubService {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    message: `Update ${path}`,
+                    message: `${sha ? 'Update' : 'Create'} ${path}`,
                     content: btoa(JSON.stringify(content, null, 2)),
-                    sha: currentFile.sha
+                    ...(sha ? { sha } : {})
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to update file');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(`Failed to ${sha ? 'update' : 'create'} file: ${error.message}`);
+            }
             return true;
         } catch (error) {
             console.error('Error updating file:', error);
