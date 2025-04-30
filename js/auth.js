@@ -128,6 +128,12 @@ class AuthManager {
             this.showNotification('Login successful!', 'success');
             document.getElementById('auth-modal').classList.add('hidden');
             
+            // Show GitHub token modal if user is admin and token is not set
+            if (user.isAdmin && !sessionStorage.getItem('github_token')) {
+                document.getElementById('github-token-modal').classList.remove('hidden');
+                this.setupGitHubTokenForm();
+            }
+            
             // Only redirect to dashboard if user is admin
             if (user.isAdmin) {
                 window.location.hash = '#dashboard';
@@ -274,6 +280,23 @@ class AuthManager {
         if (!this.currentUser) return false;
         const users = JSON.parse(localStorage.getItem('users') || '[]');
         return users.find(u => u.email === this.currentUser.email)?.isAdmin || false;
+    }
+
+    setupGitHubTokenForm() {
+        const githubTokenForm = document.getElementById('github-token-form');
+        if (githubTokenForm) {
+            githubTokenForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const token = document.getElementById('github-token').value;
+                if (token) {
+                    sessionStorage.setItem('github_token', token);
+                    document.getElementById('github-token-modal').classList.add('hidden');
+                    this.showNotification('GitHub token saved successfully!', 'success');
+                } else {
+                    this.showNotification('Please enter a valid token', 'error');
+                }
+            });
+        }
     }
 }
 
