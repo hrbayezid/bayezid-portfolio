@@ -133,34 +133,8 @@ class Navigation {
 // Project Management
 class ProjectManager {
     constructor() {
-        // Initialize with default projects if none exist
-        const defaultProjects = [
-            {
-                id: 1,
-                title: "Data Analysis Dashboard",
-                category: "data",
-                status: "completed",
-                description: "Interactive dashboard for data visualization using Python and Streamlit",
-                image: "https://via.placeholder.com/800x450",
-                link: "https://github.com/hrbayezid/data-analysis-dashboard"
-            },
-            {
-                id: 2,
-                title: "Portfolio Website",
-                category: "web",
-                status: "completed",
-                description: "Personal portfolio website built with HTML, TailwindCSS, and JavaScript",
-                image: "https://via.placeholder.com/800x450",
-                link: "https://github.com/hrbayezid/bayezid-portfolio"
-            }
-        ];
-
-        // Get projects from localStorage or use defaults
-        this.projects = JSON.parse(localStorage.getItem('projects')) || defaultProjects;
-        if (!this.projects.length) {
-            this.projects = defaultProjects;
-            this.saveProjects();
-        }
+        // Initialize with empty projects array if none exist in localStorage
+        this.projects = JSON.parse(localStorage.getItem('projects')) || [];
 
         this.projectsTable = document.getElementById('projects-table');
         this.projectsGrid = document.getElementById('projects-grid');

@@ -8,12 +8,10 @@ A modern, responsive portfolio website built with HTML, TailwindCSS, and JavaScr
 bayezid-portfolio/
 ├── index.html          # Main HTML file
 ├── js/
-│   └── main.js         # JavaScript functionality
-├── images/             # Project images and assets
-│   ├── project1.png
-│   ├── project2.jpg
-│   └── hero-bg.jpg
-└── README.md           # Project documentation
+│   ├── auth.js        # Authentication functionality
+│   ├── contact.js     # Contact form handling
+│   └── main.js        # Core JavaScript functionality
+└── README.md          # Project documentation
 ```
 
 ## Features
@@ -30,7 +28,8 @@ bayezid-portfolio/
 
 1. Clone the repository
 2. Open `index.html` in your browser
-3. No build process required - it's pure HTML/CSS/JS!
+3. Configure authentication settings in `auth.js` if required
+4. Set up contact form handling in `contact.js`
 
 ## Technologies Used
 
@@ -38,6 +37,8 @@ bayezid-portfolio/
 - TailwindCSS
 - JavaScript (ES6+)
 - Font Awesome (for icons)
+- Authentication System
+- Contact Form Integration
 
 ## Contributing
 
@@ -45,4 +46,4 @@ Feel free to fork and submit pull requests!
 
 ## License
 
-MIT License 
+MIT License
