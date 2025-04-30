@@ -32,6 +32,7 @@ class Navigation {
         this.setupMobileMenu();
         this.setupSmoothScroll();
         this.setupBackToTop();
+        this.setupIntersectionObserver();
     }
 
     setupMobileMenu() {
@@ -87,12 +88,80 @@ class Navigation {
             });
         });
     }
+
+    setupIntersectionObserver() {
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        const options = {
+            root: null,
+            rootMargin: '-20% 0px -80% 0px',
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const id = entry.target.getAttribute('id');
+                    this.highlightNavLink(id);
+                }
+            });
+        }, options);
+
+        sections.forEach(section => observer.observe(section));
+
+        // Add highlight class to nav links
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+    }
+
+    highlightNavLink(sectionId) {
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === `#${sectionId}`) {
+                link.classList.add('active');
+            }
+        });
+    }
 }
 
 // Project Management
 class ProjectManager {
     constructor() {
-        this.projects = JSON.parse(localStorage.getItem('projects') || '[]');
+        // Initialize with default projects if none exist
+        const defaultProjects = [
+            {
+                id: 1,
+                title: "Data Analysis Dashboard",
+                category: "data",
+                status: "completed",
+                description: "Interactive dashboard for data visualization using Python and Streamlit",
+                image: "https://via.placeholder.com/800x450",
+                link: "https://github.com/hrbayezid/data-analysis-dashboard"
+            },
+            {
+                id: 2,
+                title: "Portfolio Website",
+                category: "web",
+                status: "completed",
+                description: "Personal portfolio website built with HTML, TailwindCSS, and JavaScript",
+                image: "https://via.placeholder.com/800x450",
+                link: "https://github.com/hrbayezid/bayezid-portfolio"
+            }
+        ];
+
+        // Get projects from localStorage or use defaults
+        this.projects = JSON.parse(localStorage.getItem('projects')) || defaultProjects;
+        if (!this.projects.length) {
+            this.projects = defaultProjects;
+            this.saveProjects();
+        }
+
         this.projectsTable = document.getElementById('projects-table');
         this.projectsGrid = document.getElementById('projects-grid');
         this.addProjectBtn = document.getElementById('add-project-btn');
@@ -277,24 +346,25 @@ class ProjectManager {
     }
 
     renderProjects() {
-        // Render table view in dashboard
-        this.projectsTable.innerHTML = this.projects.map(project => {
-            // Create a safe copy of the project object for the onclick handler
-            const safeProject = {
-                id: project.id,
-                title: project.title,
-                category: project.category,
-                status: project.status,
-                description: project.description,
-                image: project.image,
-                link: project.link
-            };
-            
-            return `
-                <tr class="border-b border-gray-700">
-                    <td class="py-4">${project.title}</td>
-                    <td class="py-4">${project.category}</td>
-                    <td class="py-4">
+        // Ensure we have references to the DOM elements
+        if (!this.projectsGrid || !this.projectsTable) {
+            console.error('Projects containers not found');
+            return;
+        }
+
+        // Render projects grid (public view)
+        this.projectsGrid.innerHTML = this.projects.map(project => `
+            <div class="project-card glass-effect rounded-lg overflow-hidden transform hover:scale-105 transition duration-300 w-[85vw] sm:w-full mx-auto">
+                <div class="relative w-full h-56">
+                    <img src="${project.image || 'https://via.placeholder.com/800x450'}" 
+                        alt="${project.title}" 
+                        class="absolute inset-0 w-full h-full object-cover object-center"
+                        loading="lazy">
+                </div>
+                <div class="p-4">
+                    <h3 class="text-lg font-bold font-display truncate">${project.title}</h3>
+                    <p class="text-gray-300 text-sm line-clamp-2 min-h-[2.5em] mt-1">${project.description}</p>
+                    <div class="flex items-center justify-between mt-3">
                         <span class="px-2 py-1 rounded-full text-xs ${
                             project.status === 'completed' ? 'bg-green-500/20 text-green-400' :
                             project.status === 'in-progress' ? 'bg-yellow-500/20 text-yellow-400' :
@@ -302,41 +372,47 @@ class ProjectManager {
                         }">
                             ${project.status}
                         </span>
-                    </td>
-                    <td class="py-4">
-                        <button type="button" onclick="projectManager.showAddProjectModal(${JSON.stringify(safeProject).replace(/"/g, '&quot;')})" class="text-primary-400 hover:text-primary-300 mr-2">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" onclick="projectManager.deleteProject(${project.id})" class="text-red-400 hover:text-red-300">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            `;
-        }).join('');
-
-        // Render grid view in main projects section
-        this.projectsGrid.innerHTML = this.projects.map(project => `
-            <div class="project-card glass-effect rounded-xl p-4">
-                <div class="h-40 w-full overflow-hidden rounded-lg mb-4">
-                    <img src="${project.image || 'https://via.placeholder.com/400x225'}" alt="${project.title}" class="w-full h-full object-cover">
-                </div>
-                <h3 class="text-xl font-bold mb-2">${project.title}</h3>
-                <p class="text-gray-300 text-sm mb-4">${project.description}</p>
-                <div class="flex justify-between items-center">
-                    <span class="px-2 py-1 rounded-full text-xs ${
-                        project.status === 'completed' ? 'bg-green-500/20 text-green-400' :
-                        project.status === 'in-progress' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-blue-500/20 text-blue-400'
-                    }">
-                        ${project.status}
-                    </span>
-                    <a href="${project.link || '#'}" target="_blank" class="inline-block px-4 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-full hover:from-primary-600 hover:to-purple-600 transition">
-                        View Project
-                    </a>
+                        <a href="${project.link || '#'}" target="_blank" rel="noopener noreferrer"
+                            class="inline-block px-3 py-1 text-sm bg-gradient-to-r from-primary-500 to-purple-500 
+                            rounded-full hover:from-primary-600 hover:to-purple-600 transition">
+                            View Project
+                        </a>
+                    </div>
                 </div>
             </div>
         `).join('');
+
+        // Render dashboard table
+        if (this.projectsTable) {
+            this.projectsTable.innerHTML = this.projects.map(project => {
+                const safeProject = { ...project };
+                return `
+                    <tr class="border-b border-gray-700">
+                        <td class="py-4">${project.title}</td>
+                        <td class="py-4">${project.category}</td>
+                        <td class="py-4">
+                            <span class="px-2 py-1 rounded-full text-xs ${
+                                project.status === 'completed' ? 'bg-green-500/20 text-green-400' :
+                                project.status === 'in-progress' ? 'bg-yellow-500/20 text-yellow-400' :
+                                'bg-blue-500/20 text-blue-400'
+                            }">
+                                ${project.status}
+                            </span>
+                        </td>
+                        <td class="py-4">
+                            <button type="button" onclick='projectManager.showAddProjectModal(${JSON.stringify(safeProject).replace(/"/g, '&quot;')})' 
+                                class="text-primary-400 hover:text-primary-300 mr-2">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button type="button" onclick="projectManager.deleteProject(${project.id})" 
+                                class="text-red-400 hover:text-red-300">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
     }
 }
 
@@ -382,8 +458,17 @@ class SkillsManager {
             return;
         }
         
+        // Create category groups for skills section
+        const skillsByCategory = this.skills.reduce((acc, skill) => {
+            if (!acc[skill.category]) {
+                acc[skill.category] = [];
+            }
+            acc[skill.category].push(skill);
+            return acc;
+        }, {});
+
+        // Render skills in dashboard table
         this.skillsTable.innerHTML = this.skills.map(skill => {
-            // Create a safe copy of the skill object for the onclick handler
             const safeSkill = {
                 id: skill.id,
                 name: skill.name,
@@ -396,22 +481,49 @@ class SkillsManager {
                     <td class="py-4">${skill.name}</td>
                     <td class="py-4">${skill.category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
                     <td class="py-4">
-                        <div class="w-full bg-white/10 rounded-full h-2">
-                            <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full" style="width: ${skill.proficiency}%"></div>
+                        <div class="w-full bg-white/10 rounded-full h-2.5 mb-1">
+                            <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2.5 rounded-full transition-all duration-500" 
+                                style="width: ${skill.proficiency}%"></div>
                         </div>
                         <span class="text-sm text-gray-400">${skill.proficiency}%</span>
                     </td>
                     <td class="py-4">
-                        <button type="button" onclick="skillsManager.showAddSkillModal(${JSON.stringify(safeSkill).replace(/"/g, '&quot;')})" class="text-primary-400 hover:text-primary-300 mr-2">
+                        <button type="button" onclick="skillsManager.showAddSkillModal(${JSON.stringify(safeSkill).replace(/"/g, '&quot;')})" 
+                            class="text-primary-400 hover:text-primary-300 mr-2">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button type="button" onclick="skillsManager.deleteSkill(${skill.id})" class="text-red-400 hover:text-red-300">
+                        <button type="button" onclick="skillsManager.deleteSkill(${skill.id})" 
+                            class="text-red-400 hover:text-red-300">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
                 </tr>
             `;
         }).join('');
+
+        // Update public skills section
+        const skillsSection = document.querySelector('#skills .grid');
+        if (skillsSection) {
+            skillsSection.innerHTML = Object.entries(skillsByCategory).map(([category, skills]) => `
+                <div class="glass-effect rounded-lg p-6 animate-slide-up hover:animate-float w-full max-w-md">
+                    <h3 class="text-xl font-bold mb-4 font-display">${category.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h3>
+                    <div class="space-y-4">
+                        ${skills.map(skill => `
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm font-medium">${skill.name}</span>
+                                    <span class="text-sm text-gray-400">${skill.proficiency}%</span>
+                                </div>
+                                <div class="w-full bg-white/10 rounded-full h-2">
+                                    <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full transition-all duration-500" 
+                                        style="width: ${skill.proficiency}%"></div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
     }
 
     showAddSkillModal(skill = null) {
@@ -603,8 +715,7 @@ class Dashboard {
         this.notificationSettings = {
             email_notifications: true,
             project_updates: true,
-            show_email: true,
-            show_social: true
+            show_email: true
         };
         this.init();
     }
@@ -670,13 +781,8 @@ class Dashboard {
                 const formData = new FormData(this.profileForm);
                 const profileData = Object.fromEntries(formData.entries());
                 
-                // Save to localStorage
                 localStorage.setItem('profile', JSON.stringify(profileData));
-                
-                // Update hero section
                 this.updateHeroSection(profileData);
-                
-                // Show success message and notification
                 this.showSuccessMessage('Profile updated successfully!');
                 this.handleProfileUpdate();
             });
@@ -692,23 +798,17 @@ class Dashboard {
                 this.notificationSettings = {
                     email_notifications: settingsData.email_notifications === 'on',
                     project_updates: settingsData.project_updates === 'on',
-                    show_email: settingsData.show_email === 'on',
-                    show_social: settingsData.show_social === 'on'
+                    show_email: settingsData.show_email === 'on'
                 };
                 
-                // Save to localStorage
                 localStorage.setItem('settings', JSON.stringify(settingsData));
                 localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
-                
-                // Apply settings immediately
                 this.applySettings();
-                
-                // Show success message and notification
                 this.showSuccessMessage('Settings saved successfully!');
                 this.handleSettingsUpdate();
             });
 
-            // Add real-time theme switching
+            // Real-time theme switching
             const themeRadios = this.settingsForm.querySelectorAll('input[name="theme"]');
             themeRadios.forEach(radio => {
                 radio.addEventListener('change', () => {
@@ -716,24 +816,7 @@ class Dashboard {
                         theme: radio.value,
                         email_notifications: this.settingsForm.querySelector('input[name="email_notifications"]').checked,
                         project_updates: this.settingsForm.querySelector('input[name="project_updates"]').checked,
-                        show_email: this.settingsForm.querySelector('input[name="show_email"]').checked,
-                        show_social: this.settingsForm.querySelector('input[name="show_social"]').checked
-                    };
-                    localStorage.setItem('settings', JSON.stringify(settingsData));
-                    this.applySettings();
-                });
-            });
-
-            // Add real-time toggle for other settings
-            const checkboxes = this.settingsForm.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', () => {
-                    const settingsData = {
-                        theme: this.settingsForm.querySelector('input[name="theme"]:checked').value,
-                        email_notifications: this.settingsForm.querySelector('input[name="email_notifications"]').checked,
-                        project_updates: this.settingsForm.querySelector('input[name="project_updates"]').checked,
-                        show_email: this.settingsForm.querySelector('input[name="show_email"]').checked,
-                        show_social: this.settingsForm.querySelector('input[name="show_social"]').checked
+                        show_email: this.settingsForm.querySelector('input[name="show_email"]').checked
                     };
                     localStorage.setItem('settings', JSON.stringify(settingsData));
                     this.applySettings();
@@ -758,12 +841,6 @@ class Dashboard {
         const emailSection = document.querySelector('#contact .space-y-1:first-child');
         if (emailSection) {
             emailSection.style.display = settings.show_email ? 'block' : 'none';
-        }
-
-        // Apply social links visibility
-        const socialLinks = document.querySelector('#contact .mt-8');
-        if (socialLinks) {
-            socialLinks.style.display = settings.show_social ? 'flex' : 'none';
         }
 
         // Update form checkboxes to match saved settings
@@ -1013,4 +1090,4 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Make dashboard globally accessible
     window.dashboard = dashboard;
-}); 
+});

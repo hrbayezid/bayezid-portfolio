@@ -34,12 +34,29 @@ class AuthManager {
         if (user) {
             this.currentUser = JSON.parse(user);
             this.updateUI();
+            
+            // Check if admin
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const isAdmin = users.find(u => u.email === this.currentUser.email)?.isAdmin;
+            
+            if (!isAdmin) {
+                // Redirect non-admin users away from dashboard
+                if (window.location.hash === '#dashboard') {
+                    window.location.hash = '#home';
+                }
+                document.querySelectorAll('.dashboard-menu-item').forEach(item => {
+                    item.style.display = 'none';
+                });
+            }
         } else {
-            // Ensure dashboard is hidden if no user is logged in
+            // Hide dashboard and menu if not logged in
             const dashboardSection = document.getElementById('dashboard');
             if (dashboardSection) {
                 dashboardSection.classList.add('hidden');
             }
+            document.querySelectorAll('.dashboard-menu-item').forEach(item => {
+                item.style.display = 'none';
+            });
         }
     }
 
@@ -101,12 +118,22 @@ class AuthManager {
         const user = users.find(u => u.email === email && u.password === password);
 
         if (user) {
-            this.currentUser = { email: user.email, name: user.name };
+            this.currentUser = { 
+                email: user.email, 
+                name: user.name,
+                isAdmin: user.isAdmin 
+            };
             localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
             this.updateUI();
             this.showNotification('Login successful!', 'success');
             document.getElementById('auth-modal').classList.add('hidden');
-            window.location.hash = '#dashboard';
+            
+            // Only redirect to dashboard if user is admin
+            if (user.isAdmin) {
+                window.location.hash = '#dashboard';
+            } else {
+                window.location.hash = '#home';
+            }
         } else {
             this.showNotification('Invalid email or password', 'error');
         }
@@ -188,29 +215,40 @@ class AuthManager {
         const signoutButton = document.getElementById('signout-button');
         const mobileAuthButton = document.getElementById('mobile-auth-button');
         const mobileSignoutButton = document.getElementById('mobile-signout-button');
+        const dashboardContainer = document.getElementById('dashboard-container');
 
         if (this.currentUser) {
-            // Show dashboard and menu, hide login button, show signout button
+            // Hide login buttons, show logout buttons
+            authButton.classList.add('hidden');
+            signoutButton.classList.remove('hidden');
+            mobileAuthButton.classList.add('hidden');
+            mobileSignoutButton.classList.remove('hidden');
+            
+            // Show dashboard elements
             if (dashboardSection) dashboardSection.classList.remove('hidden');
             if (dashboardMenu) dashboardMenu.classList.remove('hidden');
-            if (authModal) authModal.classList.add('hidden');
-            if (authButton) authButton.classList.add('hidden');
-            if (signoutButton) signoutButton.classList.remove('hidden');
-            if (mobileAuthButton) mobileAuthButton.classList.add('hidden');
-            if (mobileSignoutButton) mobileSignoutButton.classList.remove('hidden');
+            if (dashboardContainer) dashboardContainer.classList.remove('hidden');
+            
+            // Update user info
             if (userInfo) {
                 userInfo.classList.remove('hidden');
                 userInfo.querySelector('span').textContent = this.currentUser.name;
             }
         } else {
-            // Hide dashboard and menu, show login button, hide signout button
+            // Show login buttons, hide logout buttons
+            authButton.classList.remove('hidden');
+            signoutButton.classList.add('hidden');
+            mobileAuthButton.classList.remove('hidden');
+            mobileSignoutButton.classList.add('hidden');
+            
+            // Hide dashboard elements
             if (dashboardSection) dashboardSection.classList.add('hidden');
             if (dashboardMenu) dashboardMenu.classList.add('hidden');
-            if (authButton) authButton.classList.remove('hidden');
-            if (signoutButton) signoutButton.classList.add('hidden');
-            if (mobileAuthButton) mobileAuthButton.classList.remove('hidden');
-            if (mobileSignoutButton) mobileSignoutButton.classList.add('hidden');
+            if (dashboardContainer) dashboardContainer.classList.add('hidden');
             if (userInfo) userInfo.classList.add('hidden');
+            
+            // Close auth modal
+            if (authModal) authModal.classList.add('hidden');
         }
     }
 
@@ -230,9 +268,16 @@ class AuthManager {
             notification.remove();
         }, 3000);
     }
+
+    // Add method to check if current user is admin
+    isAdmin() {
+        if (!this.currentUser) return false;
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        return users.find(u => u.email === this.currentUser.email)?.isAdmin || false;
+    }
 }
 
 // Initialize auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.authManager = new AuthManager();
-}); 
+});
