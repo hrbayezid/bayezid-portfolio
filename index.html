@@ -6,7 +6,13 @@
     <meta name="description" content="Portfolio of Bayezid - Data Scientist and Web Developer specializing in Python, JavaScript, and Machine Learning">
     <meta name="keywords" content="data science, web development, python, javascript, machine learning, portfolio, data visualization">
     <meta name="author" content="Bayezid">
+    <!-- Chrome, Firefox OS and Opera -->
     <meta name="theme-color" content="#1a1a1a">
+    <!-- Windows Phone -->
+    <meta name="msapplication-navbutton-color" content="#1a1a1a">
+    <!-- iOS Safari -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="#1a1a1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <meta property="og:title" content="Bayezid's Portfolio - Data Scientist & Web Developer">
     <meta property="og:description" content="Portfolio showcasing data science projects, web development work, and technical skills">
     <meta property="og:type" content="website">
@@ -64,21 +70,33 @@
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'fade-out': 'fadeOut 0.3s ease-in-out',
                         'slide-up': 'slideUp 0.5s ease-in-out',
+                        'slide-down': 'slideDown 0.5s ease-in-out',
                         'scale-in': 'scaleIn 0.5s ease-in-out',
                         'float': 'float 3s ease-in-out infinite',
                         'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'gradient-x': 'gradient-x 15s ease infinite',
                         'gradient-y': 'gradient-y 15s ease infinite',
                         'gradient-xy': 'gradient-xy 15s ease infinite',
+                        'shake': 'shake 0.82s cubic-bezier(.36,.07,.19,.97) both',
+                        'bounce-in': 'bounceIn 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both',
                     },
                     keyframes: {
                         fadeIn: {
                             '0%': { opacity: '0' },
                             '100%': { opacity: '1' },
                         },
+                        fadeOut: {
+                            '0%': { opacity: '1' },
+                            '100%': { opacity: '0' },
+                        },
                         slideUp: {
                             '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(-20px)', opacity: '0' },
                             '100%': { transform: 'translateY(0)', opacity: '1' },
                         },
                         scaleIn: {
@@ -99,6 +117,18 @@
                                 'background-position': 'right center'
                             }
                         },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        bounceIn: {
+                            '0%': { transform: 'scale(0.3)', opacity: '0' },
+                            '50%': { transform: 'scale(1.05)', opacity: '0.9' },
+                            '70%': { transform: 'scale(0.9)', opacity: '1' },
+                            '100%': { transform: 'scale(1)', opacity: '1' }
+                        }
                     },
                 }
             }
@@ -116,6 +146,9 @@
             background-image: radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
                             radial-gradient(circle at 75% 75%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
             background-attachment: fixed;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
             user-select: none;
         }
         body.dark {
@@ -126,6 +159,7 @@
         }
         .glass-effect {
             background: rgba(255, 255, 255, 0.9);
+            -webkit-backdrop-filter: blur(10px);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(0, 0, 0, 0.08);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
@@ -145,8 +179,8 @@
         }
         .gradient-text {
             background: linear-gradient(45deg, #3b82f6, #8b5cf6, #ec4899);
-            background-clip: text;
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 200% 200%;
             animation: gradient-x 15s ease infinite;
@@ -287,6 +321,10 @@
             color: #111827;
             border: 1px solid rgba(0, 0, 0, 0.1);
             transition: all 0.3s ease;
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
         }
         input:focus, textarea:focus, select:focus {
             border-color: #3b82f6;
@@ -394,6 +432,9 @@
         }
         /* Allow text selection only in input fields and textareas */
         input, textarea {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
             user-select: text;
         }
         /* Set cursor pointer for interactive elements */
@@ -432,7 +473,10 @@
                     <!-- Only show dashboard when user is authenticated -->
                     <div id="dashboard-container" class="hidden">
                         <div class="relative">
-                            <button id="dashboard-menu-button" class="nav-link hover:text-primary-400 transition duration-300 flex items-center">
+                            <button id="dashboard-menu-button" 
+                                class="nav-link hover:text-primary-400 transition duration-300 flex items-center"
+                                title="Open dashboard menu"
+                                aria-label="Open dashboard menu">
                                 <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <div id="dashboard-menu" class="hidden absolute right-0 mt-2 w-48 glass-effect rounded-lg shadow-lg py-1 z-50">
@@ -441,6 +485,9 @@
                                 </div>
                                 <a href="#dashboard" class="dashboard-menu-item w-full text-left px-4 py-2 hover:bg-white/10 flex items-center">
                                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                </a>
+                                <a href="#" id="update-token-link" class="forgot-token-link dashboard-menu-item w-full text-left px-4 py-2 hover:bg-white/10 flex items-center">
+                                    <i class="fas fa-key mr-2"></i>Update GitHub Token
                                 </a>
                             </div>
                         </div>
@@ -456,10 +503,11 @@
                 </div>
                 <div class="md:hidden flex items-center">
                     <button id="mobile-menu-button" 
-                        aria-label="Open navigation menu"
+                        aria-label="Toggle mobile menu"
                         aria-expanded="false"
                         aria-controls="mobile-menu"
-                        class="text-white focus:outline-none">
+                        class="text-white focus:outline-none"
+                        title="Toggle navigation menu">
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                         </svg>
@@ -486,6 +534,9 @@
                 <a href="#dashboard" id="mobile-dashboard-link" class="dashboard-menu-item hidden block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
                     <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
                 </a>
+                <a href="#" id="mobile-update-token-link" class="forgot-token-link dashboard-menu-item hidden block px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
+                    <i class="fas fa-key mr-2"></i>Update GitHub Token
+                </a>
                 <button id="mobile-auth-button" onclick="document.getElementById('auth-modal').classList.remove('hidden')" 
                     class="w-full text-left px-3 py-2 rounded-md hover:bg-gray-800/50 flex items-center">
                     <i class="fas fa-sign-in-alt mr-2"></i>Login
@@ -511,6 +562,7 @@
                 </h1>
                 <div class="h-24">
                     <p class="text-xl sm:text-2xl text-gray-300 mb-2 animate-slide-up typing-text"></p>
+
                     <p class="text-lg sm:text-xl text-gray-400 mb-8 animate-slide-up">Turning Data into Meaningful Insights</p>
                 </div>
                 <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
@@ -520,7 +572,7 @@
                     <a href="#contact" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
                         <i class="fas fa-paper-plane mr-2"></i>Get in Touch
                     </a>
-                    <a href="https://github.com/hrbayezid" target="_blank" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
+                    <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" class="inline-block px-8 py-3 glass-effect rounded-lg font-semibold hover:bg-white/10 transition duration-300">
                         <i class="fab fa-github mr-2"></i>View GitHub
                     </a>
                 </div>
@@ -608,19 +660,23 @@
                     <!-- Social Links -->
                     <div class="mt-8 flex justify-center space-x-6">
                         <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" 
-                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            title="Visit GitHub profile">
                             <i class="fab fa-github"></i>
                         </a>
                         <a href="https://linkedin.com/in/your-linkedin" target="_blank" rel="noopener noreferrer" 
-                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            title="Visit LinkedIn profile">
                             <i class="fab fa-linkedin"></i>
                         </a>
                         <a href="https://twitter.com/your-twitter" target="_blank" rel="noopener noreferrer" 
-                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            title="Visit Twitter profile">
                             <i class="fab fa-twitter"></i>
                         </a>
                         <a href="mailto:hrbayezid@gmail.com" 
-                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300">
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            title="Send email to hrbayezid@gmail.com">
                             <i class="fas fa-envelope"></i>
                         </a>
                     </div>
@@ -689,7 +745,10 @@
                                         <img id="profile-preview" src="https://via.placeholder.com/128" alt="Profile" class="w-full h-full object-cover">
                                     </div>
                                     <div>
-                                        <input type="file" id="profile-image" accept="image/*" class="hidden">
+                                        <input type="file" id="profile-image" accept="image/*" 
+                                            class="hidden"
+                                            title="Choose profile picture"
+                                            aria-label="Choose profile picture">
                                         <button type="button" onclick="document.getElementById('profile-image').click()" class="px-4 py-2 bg-white/10 rounded-lg hover:bg-white/20 transition">
                                             Change Profile Picture
                                         </button>
@@ -698,24 +757,49 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <label class="block text-sm font-medium mb-2">Full Name</label>
-                                        <input type="text" name="name" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Bayezid">
+                                        <input type="text" name="name" 
+                                            class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                            value="Bayezid"
+                                            title="Enter your full name"
+                                            placeholder="Enter your full name"
+                                            aria-label="Full name">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium mb-2">Title</label>
-                                        <input type="text" name="title" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="Aspiring Data Scientist">
+                                        <label class="block text-sm font-medium mb-2" for="profile-title">Title</label>
+                                        <input type="text" id="profile-title" name="title" 
+                                            class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                            value="Aspiring Data Scientist"
+                                            title="Enter your professional title"
+                                            placeholder="Enter your professional title"
+                                            aria-label="Professional title">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-2">Email</label>
-                                        <input type="email" name="email" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="hrbayezid@gmail.com">
+                                        <input type="email" name="email" 
+                                            class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                            value="hrbayezid@gmail.com"
+                                            title="Enter your email address"
+                                            placeholder="Enter your email address"
+                                            aria-label="Email address">
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium mb-2">Phone</label>
-                                        <input type="tel" name="phone" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" value="+8801648752209">
+                                        <input type="tel" name="phone" 
+                                            class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                            value="+8801648752209"
+                                            title="Enter your phone number"
+                                            placeholder="Enter your phone number"
+                                            aria-label="Phone number">
                                     </div>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium mb-2">Bio</label>
-                                    <textarea name="bio" class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" rows="4">Aspiring Data Scientist | Building the Future with Code</textarea>
+                                    <label class="block text-sm font-medium mb-2" for="profile-bio">Bio</label>
+                                    <textarea id="profile-bio" name="bio" 
+                                        class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                                        rows="4"
+                                        title="Enter your bio"
+                                        placeholder="Tell us about yourself"
+                                        aria-label="Biography">Aspiring Data Scientist | Building the Future with Code</textarea>
                                 </div>
                                 <div class="flex justify-end">
                                     <button type="submit" class="px-6 py-2 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
@@ -761,12 +845,18 @@
                                 <div class="space-y-4">
                                     <h4 class="text-lg font-semibold">Appearance</h4>
                                     <div class="flex items-center space-x-4">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="radio" name="theme" value="dark" checked class="form-radio text-primary-500">
+                                        <label for="theme-dark" class="flex items-center space-x-2">
+                                            <input type="radio" name="theme" id="theme-dark" value="dark" checked 
+                                                class="form-radio text-primary-500" 
+                                                title="Enable dark mode" 
+                                                aria-label="Dark mode theme">
                                             <span>Dark Mode</span>
                                         </label>
-                                        <label class="flex items-center space-x-2">
-                                            <input type="radio" name="theme" value="light" class="form-radio text-primary-500">
+                                        <label for="theme-light" class="flex items-center space-x-2">
+                                            <input type="radio" name="theme" id="theme-light" value="light" 
+                                                class="form-radio text-primary-500" 
+                                                title="Enable light mode"
+                                                aria-label="Light mode theme">
                                             <span>Light Mode</span>
                                         </label>
                                     </div>
@@ -774,12 +864,18 @@
                                 <div class="space-y-4">
                                     <h4 class="text-lg font-semibold">Notifications</h4>
                                     <div class="space-y-2">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" name="email_notifications" checked class="form-checkbox text-primary-500">
+                                        <label for="email-notif" class="flex items-center space-x-2">
+                                            <input type="checkbox" id="email-notif" name="email_notifications" checked 
+                                                class="form-checkbox text-primary-500"
+                                                title="Enable email notifications"
+                                                aria-label="Enable email notifications">
                                             <span>Email Notifications</span>
                                         </label>
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" name="project_updates" checked class="form-checkbox text-primary-500">
+                                        <label for="project-updates" class="flex items-center space-x-2">
+                                            <input type="checkbox" id="project-updates" name="project_updates" checked 
+                                                class="form-checkbox text-primary-500"
+                                                title="Enable project update notifications"
+                                                aria-label="Enable project update notifications">
                                             <span>Project Updates</span>
                                         </label>
                                     </div>
@@ -787,8 +883,11 @@
                                 <div class="space-y-4">
                                     <h4 class="text-lg font-semibold">Privacy</h4>
                                     <div class="space-y-2">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" name="show_email" checked class="form-checkbox text-primary-500">
+                                        <label for="show-email" class="flex items-center space-x-2">
+                                            <input type="checkbox" id="show-email" name="show_email" checked 
+                                                class="form-checkbox text-primary-500"
+                                                title="Show email on public profile"
+                                                aria-label="Show email on public profile">
                                             <span>Show Email on Profile</span>
                                         </label>
                                     </div>
@@ -811,7 +910,10 @@
     </footer>
 
     <!-- Back to Top Button -->
-    <button id="back-to-top" class="fixed bottom-8 right-8 glass-effect p-3 rounded-full shadow-lg hover:bg-white/10 transition duration-300 hidden">
+    <button id="back-to-top" 
+        class="fixed bottom-8 right-8 glass-effect p-3 rounded-full shadow-lg hover:bg-white/10 transition duration-300 hidden"
+        title="Scroll to top of page"
+        aria-label="Scroll to top">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
         </svg>
@@ -822,62 +924,184 @@
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/contact.js"></script>
+    <script src="js/setup-github-backend.js"></script>
 
     <!-- Auth Modal -->
-    <div id="auth-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect p-8 rounded-xl w-full max-w-md">
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-sm transition-all duration-300 overflow-y-auto py-8">
+        <div class="glass-effect p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl animate-scale-in border border-white/10 my-auto">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold gradient-text">Welcome</h2>
-                <button onclick="document.getElementById('auth-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <button onclick="document.getElementById('auth-modal').classList.add('hidden')" 
+                    class="text-gray-400 hover:text-white bg-white/10 rounded-full p-2 transition-all"
+                    title="Close modal"
+                    aria-label="Close dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
             <!-- Login Form -->
-            <form id="login-form" class="space-y-4">
+            <form id="login-form" class="space-y-5">
                 <div>
                     <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="login-email" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="login-email" name="login-email" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Login email"
+                            title="Enter your email address">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="login-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="login-password" name="login-password" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Login password"
+                            title="Enter your password">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                    Login
+                <div class="space-y-1">
+                    <label for="login-github-token" class="block text-sm font-medium">GitHub Token <span class="text-xs text-gray-400">(Optional)</span></label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fab fa-github"></i>
+                        </span>
+                        <input id="login-github-token" type="password" 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all" 
+                            placeholder="Only needed if token changed">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400">Leave empty if you still have your original token</p>
+                </div>
+                <div class="flex items-center justify-between mt-2">
+                    <label class="flex items-center space-x-2 text-sm">
+                        <input type="checkbox" id="remember-me" class="form-checkbox text-primary-500" checked>
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-token-link text-primary-400 hover:text-primary-300 text-sm transition-colors">
+                        Forgot token?
+                    </a>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition-all transform hover:scale-[1.02] font-semibold">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
                 </button>
-                <p class="text-center text-sm">
-                    Don't have an account? 
-                    <button type="button" onclick="document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden')" class="text-primary-400 hover:text-primary-300">
-                        Sign up
-                    </button>
-                </p>
+                <div class="relative flex items-center gap-4 py-3">
+                    <div class="flex-grow border-t border-white/10"></div>
+                    <span class="text-sm text-gray-400">or</span>
+                    <div class="flex-grow border-t border-white/10"></div>
+                </div>
+                <button type="button" onclick="document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden')" 
+                    class="w-full py-3 border border-primary-500 text-primary-400 rounded-lg hover:bg-primary-500/10 transition-all font-semibold">
+                    Create New Account
+                </button>
             </form>
 
             <!-- Signup Form -->
             <form id="signup-form" class="space-y-4 hidden">
                 <div>
                     <label class="block text-sm font-medium mb-1">Full Name</label>
-                    <input type="text" id="signup-name" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" id="signup-name" name="signup-name" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Full name"
+                            title="Enter your full name"
+                            placeholder="Enter your full name">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="signup-email" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        <input type="email" id="signup-email" name="signup-email" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Email address"
+                            title="Enter your email address"
+                            placeholder="Enter your email address">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="signup-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="signup-password" name="signup-password" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Password"
+                            title="Enter your password"
+                            placeholder="Enter your password">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div class="password-strength-meter mt-1 h-1 rounded-full bg-white/20 overflow-hidden hidden">
+                        <div class="h-full rounded-full bg-red-500" style="width: 0%"></div>
+                    </div>
+                    <p class="password-hint text-xs text-gray-400 mt-1">Password must be at least 8 characters with uppercase, lowercase, number, and special character</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">Confirm Password</label>
-                    <input type="password" id="signup-confirm-password" required class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" id="signup-confirm-password" name="signup-confirm-password" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            aria-label="Confirm password"
+                            title="Confirm your password"
+                            placeholder="Confirm your password">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
                 </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                    Sign Up
+                <div class="space-y-1">
+                    <label for="signup-github-token" class="flex items-center text-sm font-medium">
+                        <i class="fab fa-github mr-2 text-primary-400"></i>GitHub Token 
+                        <span class="text-xs text-gray-400 ml-2">(Optional, required for admin)</span>
+                        <a href="https://github.com/settings/tokens/new" target="_blank" class="ml-auto text-xs text-primary-400 hover:underline inline-flex items-center">
+                            Get token <i class="fas fa-external-link-alt ml-1 text-[10px]"></i>
+                        </a>
+                    </label>
+                    <div class="relative">
+                        <input id="signup-github-token" type="password" 
+                            class="w-full p-3 pl-4 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all" 
+                            placeholder="GitHub Personal Access Token">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" id="terms-agree" class="form-checkbox text-primary-500" required>
+                    <label for="terms-agree" class="text-sm">I agree to the <a href="#" class="text-primary-400 hover:underline">Terms & Conditions</a></label>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition-all transform hover:scale-[1.02] font-semibold">
+                    <i class="fas fa-user-plus mr-2"></i>Sign Up
                 </button>
                 <p class="text-center text-sm">
                     Already have an account? 
-                    <button type="button" onclick="document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden')" class="text-primary-400 hover:text-primary-300">
+                    <button type="button" onclick="document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden')" class="text-primary-400 hover:text-primary-300 transition-colors">
                         Login
                     </button>
                 </p>
@@ -886,30 +1110,318 @@
     </div>
 
     <!-- GitHub Token Modal -->
-    <div id="github-token-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="glass-effect p-8 rounded-xl w-full max-w-md">
+    <div id="github-token-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden backdrop-blur-sm transition-all duration-300 overflow-y-auto py-8">
+        <div class="glass-effect p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl animate-scale-in border border-white/10 my-auto">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold gradient-text">GitHub Setup</h2>
-                <button onclick="document.getElementById('github-token-modal').classList.add('hidden')" class="text-gray-400 hover:text-white">
+                <h2 class="text-2xl font-bold gradient-text">GitHub Integration</h2>
+                <button onclick="document.getElementById('github-token-modal').classList.add('hidden')" 
+                    class="text-gray-400 hover:text-white bg-white/10 rounded-full p-2 transition-all"
+                    title="Close modal"
+                    aria-label="Close dialog">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
-            <form id="github-token-form" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">GitHub Token</label>
-                    <input type="password" id="github-token" required 
-                        class="w-full p-3 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                        placeholder="Enter your GitHub token">
-                    <p class="mt-2 text-sm text-gray-400">
-                        This token will be used to save your portfolio data. You can generate a token from your 
-                        <a href="https://github.com/settings/tokens" target="_blank" class="text-primary-400 hover:underline">GitHub settings</a>.
-                    </p>
+            <form id="github-token-form" class="space-y-5">
+                <div class="p-4 rounded-lg bg-white/5 border border-white/10 mb-4">
+                    <div class="flex items-start space-x-3">
+                        <div class="text-primary-400 mt-1">
+                            <i class="fas fa-info-circle text-lg"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-300">
+                                Your GitHub token allows secure access to your portfolio data.
+                                <span id="admin-notice" class="hidden">
+                                    <br><span class="inline-flex items-center mt-2 text-primary-400">
+                                        <i class="fas fa-star-of-life mr-2"></i>
+                                        <strong>Admin account:</strong> Your token verification is expedited.
+                                    </span>
+                                </span>
+                            </p>
+                        </div>
+                    </div>
                 </div>
-                <button type="submit" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition">
-                    Save Token
+                
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium mb-1">GitHub Personal Access Token</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fab fa-github"></i>
+                        </span>
+                        <input type="password" id="github-token" required 
+                            class="w-full p-3 pl-10 bg-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                            placeholder="Enter your GitHub token">
+                        <button type="button" class="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-white password-toggle"
+                                onclick="togglePasswordVisibility(this.parentNode)">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <div id="token-feedback" class="mt-2 text-sm"></div>
+                </div>
+                
+                <div class="text-sm text-gray-400 bg-white/5 p-4 rounded-lg border border-white/10">
+                    <div class="flex items-start mb-2">
+                        <i class="fas fa-lightbulb text-yellow-400 mr-2 mt-1"></i>
+                        <span>How to create a GitHub token:</span>
+                    </div>
+                    <ol class="list-decimal ml-5 space-y-1">
+                        <li>Go to <a href="https://github.com/settings/tokens/new" target="_blank" class="text-primary-400 hover:underline inline-flex items-center">GitHub Settings <i class="fas fa-external-link-alt ml-1 text-[10px]"></i></a></li>
+                        <li>Give your token a descriptive name</li>
+                        <li>Select the "<span class="text-green-400">repo</span>" scope</li>
+                        <li>Click "Generate token"</li>
+                        <li>Copy and paste the token here</li>
+                    </ol>
+                    <div class="mt-3 pt-3 border-t border-white/10 flex justify-between items-center">
+                        <button type="button" id="reset-token-state" class="text-xs text-yellow-400 hover:underline flex items-center">
+                            <i class="fas fa-sync-alt mr-1"></i> Reset token state
+                        </button>
+                        <span class="text-xs italic">Having trouble? Try resetting the token state.</span>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="submitGitHubToken()" class="w-full py-3 bg-gradient-to-r from-primary-500 to-purple-500 rounded-lg hover:from-primary-600 hover:to-purple-600 transition-all transform hover:scale-[1.02] font-semibold flex items-center justify-center">
+                    <i class="fas fa-key mr-2"></i>
+                    <span>Save Token</span>
                 </button>
             </form>
         </div>
     </div>
+
+    <!-- Token script to show admin notice -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Show admin notice for the admin account
+            const adminNotice = document.getElementById('admin-notice');
+            if (adminNotice) {
+                const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                if (currentUser.email === 'hrbayezid@gmail.com') {
+                    adminNotice.classList.remove('hidden');
+                }
+            }
+            
+            // Prevent form submission redirect on GitHub token form
+            const githubTokenForm = document.getElementById('github-token-form');
+            if (githubTokenForm) {
+                githubTokenForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    return false;
+                });
+            }
+        });
+        
+        // Function to handle GitHub token submission
+        function submitGitHubToken() {
+            if (window.authManager) {
+                const tokenInput = document.getElementById('github-token');
+                if (!tokenInput || !tokenInput.value.trim()) {
+                    window.authManager.showNotification('Please enter a valid token', 'error');
+                    return;
+                }
+                
+                // Instead of dispatching an event, directly call the setup function
+                window.authManager.validateGitHubToken(tokenInput.value.trim());
+            }
+        }
+    </script>
+
+    <!-- Auth UI enhancement scripts -->
+    <script>
+        // Password visibility toggle
+        function togglePasswordVisibility(container) {
+            const passwordInput = container.querySelector('input[type]');
+            const icon = container.querySelector('.password-toggle i');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Reset GitHub token state
+        document.addEventListener('DOMContentLoaded', () => {
+            const resetTokenBtn = document.getElementById('reset-token-state');
+            if (resetTokenBtn) {
+                resetTokenBtn.addEventListener('click', () => {
+                    // Clear active token
+                    localStorage.removeItem('active_github_token');
+                    
+                    // Clear session token if it exists
+                    sessionStorage.removeItem('github_token');
+                    
+                    // Reset GitHub service if available
+                    if (window.githubService) {
+                        window.githubService.token = null;
+                    }
+                    
+                    // Reset token input and feedback
+                    const tokenInput = document.getElementById('github-token');
+                    if (tokenInput) {
+                        tokenInput.value = '';
+                        tokenInput.classList.remove('ring-2', 'ring-red-500', 'ring-green-500');
+                    }
+                    
+                    const feedbackElement = document.getElementById('token-feedback');
+                    if (feedbackElement) {
+                        feedbackElement.innerHTML = '<span class="text-green-500"><i class="fas fa-check-circle mr-2"></i>Token state reset successfully!</span>';
+                    }
+                    
+                    // Reset button state
+                    const submitButton = document.querySelector('#github-token-form button');
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                        submitButton.innerHTML = '<i class="fas fa-key mr-2"></i><span>Save Token</span>';
+                        submitButton.classList.remove('from-red-500', 'to-red-600', 'from-green-500', 'to-green-600');
+                        submitButton.classList.add('from-primary-500', 'to-purple-500');
+                    }
+                    
+                    // Hide cancel button if visible
+                    const cancelButton = document.getElementById('cancel-token-validation');
+                    if (cancelButton) {
+                        cancelButton.classList.add('hidden');
+                    }
+                    
+                    // Reset progress bar if exists
+                    const progressBar = document.querySelector('.token-validation-progress');
+                    if (progressBar) {
+                        progressBar.style.width = '0%';
+                        progressBar.classList.remove('bg-green-500', 'bg-red-500');
+                        progressBar.classList.add('bg-primary-500');
+                    }
+                    
+                    // Show notification
+                    if (window.authManager) {
+                        window.authManager.showNotification('Token state reset successfully. Try again with your new token.', 'info');
+                    }
+                    
+                    // Focus the token input field
+                    if (tokenInput) {
+                        setTimeout(() => tokenInput.focus(), 100);
+                    }
+                });
+            }
+        });
+
+        // Password strength meter
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('signup-password');
+            const meter = document.querySelector('.password-strength-meter');
+            const meterBar = meter.querySelector('div');
+            const passwordHint = document.querySelector('.password-hint');
+            
+            // Show meter when user starts typing
+            passwordInput.addEventListener('focus', () => {
+                meter.classList.remove('hidden');
+            });
+            
+            passwordInput.addEventListener('input', () => {
+                const password = passwordInput.value;
+                let strength = 0;
+                let feedback = '';
+                
+                // Length check
+                if (password.length >= 8) strength += 20;
+                
+                // Character type checks
+                if (/[A-Z]/.test(password)) strength += 20;
+                if (/[a-z]/.test(password)) strength += 20;
+                if (/[0-9]/.test(password)) strength += 20;
+                if (/[^A-Za-z0-9]/.test(password)) strength += 20;
+                
+                // Update meter
+                meterBar.style.width = `${strength}%`;
+                
+                // Update color
+                if (strength < 40) {
+                    meterBar.classList.remove('bg-yellow-500', 'bg-green-500');
+                    meterBar.classList.add('bg-red-500');
+                    feedback = 'Weak password';
+                } else if (strength < 80) {
+                    meterBar.classList.remove('bg-red-500', 'bg-green-500');
+                    meterBar.classList.add('bg-yellow-500');
+                    feedback = 'Moderate password';
+                } else {
+                    meterBar.classList.remove('bg-red-500', 'bg-yellow-500');
+                    meterBar.classList.add('bg-green-500');
+                    feedback = 'Strong password';
+                }
+                
+                // Update hint text
+                passwordHint.innerHTML = `${feedback}: ${getPasswordFeedback(password)}`;
+            });
+            
+            function getPasswordFeedback(password) {
+                const missing = [];
+                
+                if (password.length < 8) missing.push('at least 8 characters');
+                if (!/[A-Z]/.test(password)) missing.push('uppercase letter');
+                if (!/[a-z]/.test(password)) missing.push('lowercase letter');
+                if (!/[0-9]/.test(password)) missing.push('number');
+                if (!/[^A-Za-z0-9]/.test(password)) missing.push('special character');
+                
+                return missing.length > 0 
+                    ? `Add ${missing.join(', ')}` 
+                    : 'All requirements met!';
+            }
+            
+            // Show password match feedback
+            const confirmPassword = document.getElementById('signup-confirm-password');
+            if (confirmPassword) {
+                confirmPassword.addEventListener('input', () => {
+                    if (passwordInput.value && confirmPassword.value) {
+                        if (passwordInput.value === confirmPassword.value) {
+                            confirmPassword.classList.add('ring-2', 'ring-green-500');
+                            confirmPassword.classList.remove('ring-red-500');
+                        } else {
+                            confirmPassword.classList.add('ring-2', 'ring-red-500');
+                            confirmPassword.classList.remove('ring-green-500');
+                        }
+                    } else {
+                        confirmPassword.classList.remove('ring-2', 'ring-green-500', 'ring-red-500');
+                    }
+                });
+            }
+        });
+
+        // Add animation to modals
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all modal open buttons
+            const authButton = document.getElementById('auth-button');
+            const mobileAuthButton = document.getElementById('mobile-auth-button');
+            const forgotTokenLinks = document.querySelectorAll('.forgot-token-link');
+            
+            // Add opening animation
+            if (authButton) {
+                authButton.addEventListener('click', () => animateModalOpen('auth-modal'));
+            }
+            
+            if (mobileAuthButton) {
+                mobileAuthButton.addEventListener('click', () => animateModalOpen('auth-modal'));
+            }
+            
+            forgotTokenLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    animateModalOpen('github-token-modal');
+                });
+            });
+            
+            function animateModalOpen(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    // Add animation classes
+                    const modalContent = modal.querySelector('.glass-effect');
+                    modalContent.classList.add('animate-scale-in');
+                    setTimeout(() => {
+                        modalContent.classList.remove('animate-scale-in');
+                    }, 500);
+                }
+            }
+        });
+    </script>
 </body>
 </html>

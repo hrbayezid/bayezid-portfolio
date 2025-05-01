@@ -830,48 +830,121 @@ class Dashboard {
 
     setupForms() {
         if (this.profileForm) {
-            this.profileForm.addEventListener('submit', (e) => {
+            this.profileForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(this.profileForm);
                 const profileData = Object.fromEntries(formData.entries());
-
-                localStorage.setItem('profile', JSON.stringify(profileData));
-                this.updateHeroSection(profileData);
-                this.showSuccessMessage('Profile updated successfully!');
-                this.handleProfileUpdate();
+                
+                try {
+                    // Try to save to GitHub first
+                    if (window.githubService && window.githubService.token) {
+                        await window.githubService.updateFile('data/profile.json', profileData);
+                    } else {
+                        // Fallback to localStorage
+                        localStorage.setItem('profile', JSON.stringify(profileData));
+                    }
+                    
+                    this.updateHeroSection(profileData);
+                    this.showSuccessMessage('Profile updated successfully!');
+                    this.handleProfileUpdate();
+                } catch (error) {
+                    console.error('Failed to save profile data:', error);
+                    // Fallback to localStorage
+                    localStorage.setItem('profile', JSON.stringify(profileData));
+                    this.showNotification('Error', { 
+                        body: 'Profile saved locally only. GitHub storage failed.', 
+                        type: 'warning'
+                    });
+                }
             });
         }
 
         if (this.settingsForm) {
-            this.settingsForm.addEventListener('submit', (e) => {
+            this.settingsForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(this.settingsForm);
-                const settingsData = Object.fromEntries(formData.entries());
-
-                this.notificationSettings = {
-                    email_notifications: settingsData.email_notifications === 'on',
-                    project_updates: settingsData.project_updates === 'on',
-                    show_email: settingsData.show_email === 'on'
+                const formEntries = Object.fromEntries(formData.entries());
+                
+                // Structure the settings data
+                const settingsData = {
+                    theme: formEntries.theme,
+                    notifications: {
+                        email_notifications: formEntries.email_notifications === 'on',
+                        project_updates: formEntries.project_updates === 'on',
+                        show_email: formEntries.show_email === 'on'
+                    }
                 };
+                
+                this.notificationSettings = settingsData.notifications;
 
-                localStorage.setItem('settings', JSON.stringify(settingsData));
-                localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
-                this.applySettings();
-                this.showSuccessMessage('Settings saved successfully!');
-                this.handleSettingsUpdate();
+                try {
+                    // Try to save to GitHub first
+                    if (window.githubService && window.githubService.token) {
+                        await window.githubService.updateFile('data/settings.json', settingsData);
+                    } else {
+                        // Fallback to localStorage
+                        localStorage.setItem('settings', JSON.stringify(formEntries));
+                        localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
+                    }
+                    
+                    this.applySettings();
+                    this.showSuccessMessage('Settings saved successfully!');
+                    this.handleSettingsUpdate();
+                } catch (error) {
+                    console.error('Failed to save settings data:', error);
+                    // Fallback to localStorage
+                    localStorage.setItem('settings', JSON.stringify(formEntries));
+                    localStorage.setItem('notificationSettings', JSON.stringify(this.notificationSettings));
+                    this.showNotification('Error', { 
+                        body: 'Settings saved locally only. GitHub storage failed.', 
+                        type: 'warning'
+                    });
+                }
             });
 
             const themeRadios = this.settingsForm.querySelectorAll('input[name="theme"]');
             themeRadios.forEach(radio => {
-                radio.addEventListener('change', () => {
+                radio.addEventListener('change', async () => {
+                    // Apply theme immediately
+                    if (radio.value === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else if (radio.value === 'light') {
+                        document.documentElement.classList.remove('dark');
+                    } else {
+                        // Auto theme based on system preference
+                        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                            document.documentElement.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                        }
+                    }
+                    
+                    // Save theme selection to storage
                     const settingsData = {
                         theme: radio.value,
-                        email_notifications: this.settingsForm.querySelector('input[name="email_notifications"]').checked,
-                        project_updates: this.settingsForm.querySelector('input[name="project_updates"]').checked,
-                        show_email: this.settingsForm.querySelector('input[name="show_email"]').checked
+                        notifications: this.notificationSettings
                     };
-                    localStorage.setItem('settings', JSON.stringify(settingsData));
-                    this.applySettings();
+                    
+                    try {
+                        if (window.githubService && window.githubService.token) {
+                            await window.githubService.updateFile('data/settings.json', settingsData);
+                        } else {
+                            localStorage.setItem('settings', JSON.stringify({
+                                theme: radio.value,
+                                email_notifications: this.settingsForm.querySelector('input[name="email_notifications"]').checked,
+                                project_updates: this.settingsForm.querySelector('input[name="project_updates"]').checked,
+                                show_email: this.settingsForm.querySelector('input[name="show_email"]').checked
+                            }));
+                        }
+                    } catch (error) {
+                        console.error('Failed to save theme setting:', error);
+                        localStorage.setItem('settings', JSON.stringify({
+                            theme: radio.value,
+                            email_notifications: this.settingsForm.querySelector('input[name="email_notifications"]').checked,
+                            project_updates: this.settingsForm.querySelector('input[name="project_updates"]').checked,
+                            show_email: this.settingsForm.querySelector('input[name="show_email"]').checked
+                        }));
+                    }
                 });
             });
         }
@@ -973,7 +1046,10 @@ class Dashboard {
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (e) => {
-                        this.profilePreview.src = e.target.result;
+                        this.profilePreview.innerHTML = `
+                            <img src="${e.target.result}" alt="Profile" class="w-32 h-32 rounded-full object-cover">
+                        `;
+                        this.profilePreview.classList.remove('hidden');
 
                         const heroProfileImage = document.querySelector('#home .rounded-full img');
                         if (heroProfileImage) {
@@ -1004,44 +1080,143 @@ class Dashboard {
         }, 3000);
     }
 
-    loadSavedData() {
-        if (this.profileForm) {
-            const savedProfile = localStorage.getItem('profile');
-            if (savedProfile) {
-                const profileData = JSON.parse(savedProfile);
+    async loadSavedData() {
+        try {
+            // Load profile data from GitHub
+            const profileData = await window.githubService.getFileContent('data/profile.json');
+            if (profileData) {
+                // Fill profile form
                 Object.entries(profileData).forEach(([key, value]) => {
-                    const input = this.profileForm.querySelector(`[name="${key}"]`);
-                    if (input) input.value = value;
-                });
-            }
-        }
-
-        if (this.settingsForm) {
-            const savedSettings = localStorage.getItem('settings');
-            if (savedSettings) {
-                const settingsData = JSON.parse(savedSettings);
-                Object.entries(settingsData).forEach(([key, value]) => {
-                    const input = this.settingsForm.querySelector(`[name="${key}"]`);
+                    const input = document.querySelector(`#profile-form [name="${key}"]`);
                     if (input) {
                         if (input.type === 'checkbox') {
                             input.checked = value;
-                        } else if (input.type === 'radio') {
-                            input.checked = input.value === value;
+                        } else {
+                            input.value = value;
                         }
                     }
                 });
+
+                // Update hero section
+                this.updateHeroSection(profileData);
+
+                // Update profile image if available
+                if (profileData.profileImage) {
+                    this.profilePreview.innerHTML = `
+                        <img src="${profileData.profileImage}" alt="Profile" class="w-32 h-32 rounded-full object-cover">
+                    `;
+                    this.profilePreview.classList.remove('hidden');
+                }
+            } else {
+                // Fall back to localStorage if no GitHub data
+                const storedProfile = localStorage.getItem('profile');
+                if (storedProfile) {
+                    const profileData = JSON.parse(storedProfile);
+                    Object.entries(profileData).forEach(([key, value]) => {
+                        const input = document.querySelector(`#profile-form [name="${key}"]`);
+                        if (input) {
+                            if (input.type === 'checkbox') {
+                                input.checked = value;
+                            } else {
+                                input.value = value;
+                            }
+                        }
+                    });
+                    this.updateHeroSection(profileData);
+                }
             }
+
+            // Load settings data
+            const settingsData = await window.githubService.getFileContent('data/settings.json');
+            if (settingsData) {
+                // Apply settings
+                this.notificationSettings = settingsData.notifications || this.notificationSettings;
+                
+                // Set theme
+                if (settingsData.theme) {
+                    document.querySelector(`#settings-form input[name="theme"][value="${settingsData.theme}"]`).checked = true;
+                    if (settingsData.theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else if (settingsData.theme === 'light') {
+                        document.documentElement.classList.remove('dark');
+                    } else {
+                        // Auto theme based on system preference
+                        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                            document.documentElement.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                        }
+                    }
+                }
+                
+                // Set notification checkboxes
+                if (settingsData.notifications) {
+                    Object.entries(settingsData.notifications).forEach(([key, value]) => {
+                        const input = document.querySelector(`#settings-form [name="${key}"]`);
+                        if (input && input.type === 'checkbox') {
+                            input.checked = value;
+                        }
+                    });
+                }
+            } else {
+                // Fall back to localStorage
+                const storedSettings = localStorage.getItem('settings');
+                if (storedSettings) {
+                    const settingsData = JSON.parse(storedSettings);
+                    document.querySelector(`#settings-form input[name="theme"][value="${settingsData.theme}"]`).checked = true;
+                    
+                    this.notificationSettings = JSON.parse(localStorage.getItem('notificationSettings')) || this.notificationSettings;
+                    
+                    // Apply theme
+                    if (settingsData.theme === 'dark') {
+                        document.documentElement.classList.add('dark');
+                    } else if (settingsData.theme === 'light') {
+                        document.documentElement.classList.remove('dark');
+                    } else {
+                        // Auto theme
+                        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                            document.documentElement.classList.add('dark');
+                        } else {
+                            document.documentElement.classList.remove('dark');
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading saved data:', error);
+            // Fall back to localStorage if GitHub fails
+            this.loadFromLocalStorage();
         }
-
-        const savedImage = localStorage.getItem('profileImage');
-        if (savedImage) {
-            if (this.profilePreview) {
-                this.profilePreview.src = savedImage;
-            }
-
-            const heroProfileImage = document.querySelector('#home .rounded-full img');
-            if (heroProfileImage) {
-                heroProfileImage.src = savedImage;
+    }
+    
+    loadFromLocalStorage() {
+        const storedProfile = localStorage.getItem('profile');
+        if (storedProfile) {
+            const profileData = JSON.parse(storedProfile);
+            Object.entries(profileData).forEach(([key, value]) => {
+                const input = document.querySelector(`#profile-form [name="${key}"]`);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = value;
+                    } else {
+                        input.value = value;
+                    }
+                }
+            });
+            this.updateHeroSection(profileData);
+        }
+        
+        const storedSettings = localStorage.getItem('settings');
+        if (storedSettings) {
+            const settingsData = JSON.parse(storedSettings);
+            document.querySelector(`#settings-form input[name="theme"][value="${settingsData.theme}"]`).checked = true;
+            
+            this.notificationSettings = JSON.parse(localStorage.getItem('notificationSettings')) || this.notificationSettings;
+            
+            if (settingsData.theme === 'dark') {
+                document.documentElement.classList.add('dark');
+            } else if (settingsData.theme === 'light') {
+                document.documentElement.classList.remove('dark');
             }
         }
     }
