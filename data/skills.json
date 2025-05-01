@@ -1,0 +1,62 @@
+[
+  {
+    "id": 1,
+    "name": "Python",
+    "category": "programming-languages",
+    "proficiency": 80
+  },
+  {
+    "id": 2,
+    "name": "JavaScript",
+    "category": "programming-languages",
+    "proficiency": 75
+  },
+  {
+    "id": 3,
+    "name": "SQL",
+    "category": "programming-languages",
+    "proficiency": 70
+  },
+  {
+    "id": 4,
+    "name": "Pandas",
+    "category": "data-science-tools",
+    "proficiency": 85
+  },
+  {
+    "id": 5,
+    "name": "NumPy",
+    "category": "data-science-tools",
+    "proficiency": 80
+  },
+  {
+    "id": 6,
+    "name": "Machine Learning",
+    "category": "data-science-tools",
+    "proficiency": 75
+  },
+  {
+    "id": 7,
+    "name": "HTML",
+    "category": "web-development",
+    "proficiency": 90
+  },
+  {
+    "id": 8,
+    "name": "Tailwind CSS",
+    "category": "web-development",
+    "proficiency": 85
+  },
+  {
+    "id": 9,
+    "name": "Matplotlib",
+    "category": "data-visualization",
+    "proficiency": 80
+  },
+  {
+    "id": 10,
+    "name": "Seaborn",
+    "category": "data-visualization",
+    "proficiency": 75
+  }
+]
