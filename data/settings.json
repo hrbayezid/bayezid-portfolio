@@ -1,0 +1,8 @@
+{
+  "theme": "dark",
+  "notifications": {
+    "email_notifications": true,
+    "project_updates": true,
+    "show_email": true
+  }
+}
