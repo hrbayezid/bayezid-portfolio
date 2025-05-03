@@ -1,7 +1,12 @@
 {
-  "name": "Bayezid",
+  "name": "Hifzur Rahman Bayezid",
   "title": "Aspiring Data Scientist",
-  "email": "hrbayezid@gmail.com",
-  "phone": "+8801648752209",
-  "bio": "Aspiring Data Scientist | Building the Future with Codes"
+  "bio": "Aspiring Data Scientist | Building the Future with Codes",
+  "image": "https://via.placeholder.com/128",
+  "social": {
+    "github": "https://github.com/hrbayezid",
+    "linkedin": "https://linkedin.com/in/your-linkedin",
+    "kaggle": "https://kaggle.com/yourusername",
+    "medium": "https://medium.com/@yourusername"
+  }
 }
