@@ -6,5 +6,13 @@
     "proficiency": 75,
     "icon": "fas fa-code",
     "createdAt": "2025-05-03T05:35:34.365Z"
+  },
+  {
+    "id": "1746250687130",
+    "name": "hello",
+    "category": "programming",
+    "proficiency": 75,
+    "icon": "fas fa-code",
+    "createdAt": "2025-05-03T05:38:07.130Z"
   }
 ]
