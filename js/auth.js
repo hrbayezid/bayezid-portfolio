@@ -228,7 +228,7 @@ class AuthManager {
      * Update the UI for an authenticated user
      */
     updateUIForAuthenticatedUser() {
-        console.log('🔄 Updating UI for authenticated user');
+        console.log('🔄 [AUTH] Updating UI for authenticated user');
         
         // Show dashboard container
         const dashboardContainer = document.getElementById('dashboard-container');
@@ -271,11 +271,82 @@ class AuthManager {
             userInfo.querySelector('span').textContent = `Logged in as ${this.currentUser.username}`;
         }
         
+        // Inject GitHub Setup tab into the dashboard navigation as a failsafe
+        this.injectGitHubSetupTab();
+        
         // Ensure GitHub Setup tab is visible using the dedicated method
         this.ensureGitHubSetupTabVisible();
         
         // Check GitHub token status and show appropriate message
         this.checkGitHubTokenStatus();
+    }
+    
+    /**
+     * Inject GitHub Setup tab directly into the dashboard navigation
+     * This is a failsafe to ensure the tab exists in the DOM
+     */
+    injectGitHubSetupTab() {
+        console.log('🔧 [AUTH] Attempting to inject GitHub Setup tab as failsafe');
+        
+        // Find the dashboard tabs container
+        const tabsContainer = document.querySelector('.dashboard-tab')?.parentElement;
+        if (!tabsContainer) {
+            console.warn('⚠️ [AUTH] Dashboard tabs container not found, cannot inject tab');
+            return;
+        }
+        
+        // Check if the GitHub Setup tab already exists
+        const existingTab = document.querySelector('[data-tab="github-setup"]');
+        if (existingTab) {
+            console.log('✅ [AUTH] GitHub Setup tab already exists, no need to inject');
+            return;
+        }
+        
+        // Create the tab button
+        const githubTab = document.createElement('button');
+        githubTab.className = 'dashboard-tab px-4 py-3 font-medium';
+        githubTab.setAttribute('data-tab', 'github-setup');
+        githubTab.innerHTML = '<i class="fab fa-github mr-2"></i>GitHub Setup';
+        
+        // Append it to the dashboard tabs
+        tabsContainer.appendChild(githubTab);
+        console.log('✅ [AUTH] Injected GitHub Setup tab button');
+        
+        // Create the content container if it doesn't exist
+        const contentContainer = document.querySelector('.dashboard-content')?.parentElement;
+        if (contentContainer) {
+            const existingContent = document.getElementById('github-setup-tab');
+            if (!existingContent) {
+                // Create a minimal content area that will be replaced when GitHub Setup initializes
+                const contentDiv = document.createElement('div');
+                contentDiv.id = 'github-setup-tab';
+                contentDiv.className = 'dashboard-content hidden';
+                contentDiv.innerHTML = `
+                    <div class="p-6">
+                        <h3 class="text-2xl font-bold mb-4">GitHub Setup</h3>
+                        <p class="mb-4">Loading GitHub setup options...</p>
+                        <div class="animate-pulse flex space-x-4">
+                            <div class="flex-1 space-y-4 py-1">
+                                <div class="h-4 bg-gray-700 rounded w-3/4"></div>
+                                <div class="space-y-2">
+                                    <div class="h-4 bg-gray-700 rounded"></div>
+                                    <div class="h-4 bg-gray-700 rounded w-5/6"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                contentContainer.appendChild(contentDiv);
+                console.log('✅ [AUTH] Injected GitHub Setup content placeholder');
+            }
+        } else {
+            console.warn('⚠️ [AUTH] Dashboard content container not found');
+        }
+        
+        // Try to setup dashboard tabs now that we've added the tab
+        if (typeof window.setupDashboardTabs === 'function') {
+            setTimeout(window.setupDashboardTabs, 100);
+        }
     }
     
     /**
@@ -421,39 +492,126 @@ class AuthManager {
      * This is called both after login and when initializing the auth state
      */
     ensureGitHubSetupTabVisible() {
-        console.log('📋 Explicitly ensuring GitHub Setup tab visibility');
+        console.log('📋 [AUTH] Explicitly ensuring GitHub Setup tab visibility');
+        
+        // If DOM is not fully loaded, wait for it
+        if (document.readyState !== 'complete' && document.readyState !== 'interactive') {
+            console.log('🕒 [AUTH] DOM not ready yet, waiting for load event');
+            window.addEventListener('DOMContentLoaded', () => {
+                console.log('🌐 [AUTH] DOMContentLoaded fired, now ensuring tab visibility');
+                this.ensureGitHubSetupTabVisible();
+            });
+            return;
+        }
         
         // Find the GitHub Setup tab and content
         const setupTab = document.querySelector('[data-tab="github-setup"]');
         const setupContent = document.getElementById('github-setup-tab');
+        
+        console.log('🔍 [AUTH] Current document state:', document.readyState);
+        console.log('🔍 [AUTH] GitHub Setup Tab found:', !!setupTab);
+        console.log('🔍 [AUTH] GitHub Setup Content found:', !!setupContent);
         
         if (setupTab && setupContent) {
             // Make sure the tab button is visible and not hidden
             setupTab.style.display = '';
             setupTab.classList.remove('hidden');
             
-            console.log('✅ GitHub Setup tab made visible in the DOM');
+            // Check current visibility
+            const computedStyle = window.getComputedStyle(setupTab);
+            console.log(`✅ [AUTH] Tab display property: "${computedStyle.display}", visibility: "${computedStyle.visibility}"`);
             
-            // Re-initialize dashboard tabs to ensure proper rendering
+            // Approach 1: Use setupDashboardTabs function
             if (typeof window.setupDashboardTabs === 'function') {
-                console.log('🔄 Re-initializing dashboard tabs to include GitHub Setup tab');
+                console.log('🔄 [AUTH] Re-initializing dashboard tabs to include GitHub Setup tab');
                 window.setupDashboardTabs();
             } else {
-                console.warn('⚠️ setupDashboardTabs function not available yet');
-                // Try again with a delay if the function isn't available yet
+                console.warn('⚠️ [AUTH] setupDashboardTabs function not available yet');
+                
+                // Approach 2: Try a more direct method
+                console.log('🔧 [AUTH] Trying direct tab manipulation approach');
+                
+                // Make sure the GitHub Setup tab is in the dashboard tabs list
+                const dashboardTabs = document.querySelectorAll('.dashboard-tab');
+                console.log(`📊 [AUTH] Found ${dashboardTabs.length} dashboard tabs`);
+                
+                // Make very sure the tab is visible
+                setupTab.style.cssText = "display: block !important; visibility: visible !important;";
+                console.log('🔧 [AUTH] Force applied display and visibility styles');
+                
+                // Try again with a delay
                 setTimeout(() => {
                     if (typeof window.setupDashboardTabs === 'function') {
                         window.setupDashboardTabs();
-                        console.log('✅ Dashboard tabs re-initialized after delay');
+                        console.log('✅ [AUTH] Dashboard tabs re-initialized after delay');
+                    } else {
+                        // Last resort: manually set up tab click handler
+                        console.log('🔧 [AUTH] Setting up manual tab click handler');
+                        setupTab.addEventListener('click', function() {
+                            // Hide all content
+                            document.querySelectorAll('.dashboard-content').forEach(content => {
+                                content.classList.add('hidden');
+                            });
+                            
+                            // Show GitHub setup content
+                            setupContent.classList.remove('hidden');
+                            
+                            // Set active tab
+                            document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                                tab.classList.remove('active');
+                            });
+                            setupTab.classList.add('active');
+                        });
                     }
-                }, 500);
+                }, 1000);
+            }
+        } else {
+            console.error('❌ [AUTH] GitHub Setup tab or content not found in the DOM');
+            
+            // If tabs are found but not the GitHub tab, try to recreate it
+            const dashboardTabsContainer = document.querySelector('.dashboard-tab').parentElement;
+            const dashboardContentsContainer = document.querySelector('.dashboard-content').parentElement;
+            
+            if (dashboardTabsContainer && dashboardContentsContainer && !setupTab) {
+                console.log('🔧 [AUTH] Attempting to recreate missing GitHub Setup tab');
+                
+                // Create the tab button if it doesn't exist
+                const newTab = document.createElement('button');
+                newTab.className = 'dashboard-tab px-4 py-3 font-medium';
+                newTab.setAttribute('data-tab', 'github-setup');
+                newTab.innerHTML = '<i class="fab fa-github mr-2"></i>GitHub Setup';
+                dashboardTabsContainer.appendChild(newTab);
+                
+                // Ensure the content exists
+                if (!setupContent && dashboardContentsContainer) {
+                    const newContent = document.createElement('div');
+                    newContent.id = 'github-setup-tab';
+                    newContent.className = 'dashboard-content hidden';
+                    newContent.innerHTML = `
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-bold">GitHub Backend Configuration</h3>
+                            <button id="test-github-connection" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                                <i class="fas fa-sync-alt mr-2"></i>Test Connection
+                            </button>
+                        </div>
+                        <div id="github-status" class="mb-4 p-4 bg-gray-800/50 rounded-lg">
+                            <p class="text-gray-400">GitHub connection status will appear here</p>
+                        </div>
+                    `;
+                    dashboardContentsContainer.appendChild(newContent);
+                    
+                    // Try to initialize buttons
+                    if (typeof initializeGitHubSetupButtons === 'function') {
+                        setTimeout(initializeGitHubSetupButtons, 500);
+                    }
+                }
+                
+                // Try to set up the tabs again
+                if (typeof window.setupDashboardTabs === 'function') {
+                    setTimeout(window.setupDashboardTabs, 300);
+                }
             }
             
-            // Log for debugging
-            console.log('GitHub Setup Tab:', setupTab);
-            console.log('GitHub Setup Content:', setupContent);
-        } else {
-            console.error('❌ GitHub Setup tab or content not found in the DOM');
             // Log the available tabs and content areas for debugging
             console.log('Available tabs:', 
                 Array.from(document.querySelectorAll('.dashboard-tab'))

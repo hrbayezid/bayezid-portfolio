@@ -612,42 +612,163 @@ function initializeApiClient() {
 
 // Set up dashboard tabs
 function setupDashboardTabs() {
+    // Debug timestamp to track when this function runs
+    const setupTime = new Date().toISOString();
+    console.log(`🕒 [TABS ${setupTime}] Setting up dashboard tabs`);
+    
     const tabButtons = document.querySelectorAll('.dashboard-tab');
     const tabContents = document.querySelectorAll('.dashboard-content');
+    const tabsContainer = document.querySelector('.dashboard-tab')?.parentElement;
+    const contentContainer = document.querySelector('.dashboard-content')?.parentElement;
     
-    if (!tabButtons.length || !tabContents.length) {
-        console.warn('⚠️ Dashboard tabs structure missing');
+    console.log(`🔍 [TABS] Found ${tabButtons.length} tab buttons, ${tabContents.length} content areas`);
+    console.log(`🔍 [TABS] Tabs container found: ${!!tabsContainer}, Content container found: ${!!contentContainer}`);
+    
+    // Make sure function is globally available
+    if (window.setupDashboardTabs !== setupDashboardTabs) {
+        window.setupDashboardTabs = setupDashboardTabs;
+        console.log('🔄 [TABS] Made setupDashboardTabs globally available');
+    }
+    
+    // Early check to make sure we have the containers
+    if (!tabsContainer || !contentContainer) {
+        console.warn('⚠️ [TABS] Dashboard structure not found in DOM');
         return;
     }
     
-    console.log(`🔄 Setting up ${tabButtons.length} dashboard tabs`);
+    // Ensure GitHub Setup tab exists
+    let githubSetupTab = document.querySelector('[data-tab="github-setup"]');
+    let githubSetupContent = document.getElementById('github-setup-tab');
     
-    // Make setupDashboardTabs globally available for re-initialization
-    window.setupDashboardTabs = setupDashboardTabs;
-    
-    // Set up GitHub Setup tab (NEVER hide it in the admin dashboard)
-    const githubSetupTab = document.querySelector('[data-tab="github-setup"]');
-    if (githubSetupTab) {
-        console.log('🔄 GitHub setup tab found, ensuring visibility');
+    // Create GitHub Setup tab if it doesn't exist but containers exist
+    if (!githubSetupTab && tabsContainer) {
+        console.log('🔧 [TABS] Creating missing GitHub Setup tab');
+        
+        // Create tab button
+        githubSetupTab = document.createElement('button');
+        githubSetupTab.className = 'dashboard-tab px-4 py-3 font-medium';
+        githubSetupTab.setAttribute('data-tab', 'github-setup');
+        githubSetupTab.innerHTML = '<i class="fab fa-github mr-2"></i>GitHub Setup';
+        tabsContainer.appendChild(githubSetupTab);
+        
+        console.log('✅ [TABS] Created GitHub Setup tab button');
+    } else if (githubSetupTab) {
+        console.log('✅ [TABS] GitHub Setup tab already exists');
+        
+        // Make sure the tab is visible
         githubSetupTab.style.display = '';
         githubSetupTab.classList.remove('hidden');
-    } else {
-        console.warn('⚠️ GitHub setup tab not found in dashboard tabs');
     }
     
-    // Add click event to tab buttons
-    tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+    // Create GitHub Setup content if it doesn't exist
+    if (!githubSetupContent && contentContainer) {
+        console.log('🔧 [TABS] Creating missing GitHub Setup content');
+        
+        // Create content div
+        githubSetupContent = document.createElement('div');
+        githubSetupContent.id = 'github-setup-tab';
+        githubSetupContent.className = 'dashboard-content hidden';
+        githubSetupContent.innerHTML = `
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">GitHub Backend Configuration</h3>
+                <button id="test-github-connection" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-sync-alt mr-2"></i>Test Connection
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="glass-effect rounded-xl p-6">
+                    <h4 class="text-lg font-medium mb-4">GitHub Repository Setup</h4>
+                    <form id="github-config-form" class="space-y-4">
+                        <div>
+                            <label for="github-owner" class="block text-sm font-medium mb-1">Repository Owner</label>
+                            <input type="text" id="github-owner" class="w-full p-2 rounded-lg" placeholder="e.g. hrbayezid" value="hrbayezid">
+                            <p class="text-xs text-gray-400 mt-1">Your GitHub username</p>
+                        </div>
+                        <div>
+                            <label for="github-repo" class="block text-sm font-medium mb-1">Repository Name</label>
+                            <input type="text" id="github-repo" class="w-full p-2 rounded-lg" placeholder="e.g. bayezid-portfolio" value="bayezid-portfolio">
+                            <p class="text-xs text-gray-400 mt-1">The name of your portfolio repository</p>
+                        </div>
+                        <div>
+                            <label for="github-token" class="block text-sm font-medium mb-1">GitHub Personal Access Token</label>
+                            <input type="password" id="github-token" class="w-full p-2 rounded-lg" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                            <p class="text-xs text-gray-400 mt-1">
+                                Token with 'repo' scope. 
+                                <a href="https://github.com/settings/tokens/new" target="_blank" class="text-primary-400 hover:underline">
+                                    Create one here
+                                </a>
+                            </p>
+                        </div>
+                        <div>
+                            <label for="github-branch" class="block text-sm font-medium mb-1">Branch Name</label>
+                            <input type="text" id="github-branch" class="w-full p-2 rounded-lg" placeholder="main" value="main">
+                            <p class="text-xs text-gray-400 mt-1">The branch to store your data (usually 'main')</p>
+                        </div>
+                        <button type="submit" id="save-github-config" class="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg">
+                            <i class="fas fa-save mr-2"></i>Save Configuration
+                        </button>
+                    </form>
+                </div>
+                <div class="glass-effect rounded-xl p-6">
+                    <h4 class="text-lg font-medium mb-4">Status & Actions</h4>
+                    <div id="github-status" class="mb-4 p-4 bg-gray-800/50 rounded-lg">
+                        <p class="text-gray-400">GitHub connection status will appear here</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button id="init-github-backend" class="w-full py-2 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white rounded-lg transition">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i>Initialize GitHub Backend
+                        </button>
+                        <button id="migrate-to-github" class="w-full py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg transition">
+                            <i class="fas fa-file-export mr-2"></i>Migrate Local Data to GitHub
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="glass-effect rounded-xl p-6">
+                <h4 class="text-lg font-medium mb-4">Setup Progress</h4>
+                <div id="github-setup-log" class="h-64 overflow-y-auto p-4 bg-gray-800/50 rounded-lg font-mono text-sm">
+                    <p class="text-gray-400">Setup logs will appear here...</p>
+                </div>
+            </div>
+        `;
+        contentContainer.appendChild(githubSetupContent);
+        
+        console.log('✅ [TABS] Created GitHub Setup content');
+        
+        // Initialize GitHub setup buttons
+        setTimeout(() => {
+            if (typeof initializeGitHubSetupButtons === 'function') {
+                initializeGitHubSetupButtons();
+                console.log('✅ [TABS] Initialized GitHub Setup buttons');
+            } else {
+                console.warn('⚠️ [TABS] initializeGitHubSetupButtons function not available');
+            }
+        }, 500);
+    } else if (githubSetupContent) {
+        console.log('✅ [TABS] GitHub Setup content already exists');
+    }
+    
+    // Now get updated tab buttons and contents
+    const updatedTabButtons = document.querySelectorAll('.dashboard-tab');
+    const updatedTabContents = document.querySelectorAll('.dashboard-content');
+    
+    // Add click event to all tab buttons
+    updatedTabButtons.forEach(btn => {
+        // Remove any existing click handlers to prevent duplicates
+        const newBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(newBtn, btn);
+        
+        newBtn.addEventListener('click', () => {
             // Toggle active class on tab buttons
-            tabButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
+            updatedTabButtons.forEach(b => b.classList.remove('active'));
+            newBtn.classList.add('active');
             
             // Show corresponding tab content
-            const tabId = btn.getAttribute('data-tab');
+            const tabId = newBtn.getAttribute('data-tab');
             const content = document.getElementById(`${tabId}-tab`);
             
             if (content) {
-                tabContents.forEach(c => c.classList.add('hidden'));
+                updatedTabContents.forEach(c => c.classList.add('hidden'));
                 content.classList.remove('hidden');
                 
                 // Log tab change
@@ -658,13 +779,13 @@ function setupDashboardTabs() {
         });
     });
     
-    // Set default active tab
-    const defaultTab = tabButtons[0];
-    if (defaultTab) {
-        defaultTab.click();
+    // Set the default active tab if none is active
+    const activeTab = document.querySelector('.dashboard-tab.active');
+    if (!activeTab && updatedTabButtons.length > 0) {
+        updatedTabButtons[0].click();
     }
     
-    console.log('✅ Dashboard tabs setup complete');
+    console.log(`✅ [TABS ${setupTime}] Dashboard tabs setup complete`);
 }
 
 // Setup content filters (skills, projects)

@@ -137,12 +137,38 @@ function initializeGitHubSetupButtons() {
 
 class GitHubBackendSetup {
     constructor() {
+        console.log('🔧 [GITHUB-SETUP] Initializing GitHub Backend Setup');
+        
+        // Check if DOM is fully loaded
+        if (document.readyState !== 'complete' && document.readyState !== 'interactive') {
+            console.log('🕒 [GITHUB-SETUP] DOM not fully loaded, waiting...');
+            const instance = this;
+            window.addEventListener('DOMContentLoaded', () => {
+                console.log('🌐 [GITHUB-SETUP] DOMContentLoaded fired, reinitializing');
+                instance.initialize();
+            });
+            return;
+        }
+        
+        this.initialize();
+    }
+    
+    initialize() {
         this.githubService = window.githubService;
         
         if (!this.githubService) {
-            console.error('❌ GitHub service not available - cannot initialize setup');
-            alert('GitHub service not available. The page may need to be reloaded.');
-            return;
+            console.error('❌ [GITHUB-SETUP] GitHub service not available');
+            
+            // Try to initialize GitHub service if it's available but not instantiated
+            if (typeof GitHubService === 'function') {
+                console.log('🔄 [GITHUB-SETUP] Attempting to create GitHub service instance');
+                window.githubService = new GitHubService();
+                this.githubService = window.githubService;
+            } else {
+                console.error('❌ [GITHUB-SETUP] GitHubService class not found');
+                alert('GitHub service not available. The page may need to be reloaded.');
+                return;
+            }
         }
         
         this.dataFiles = [
@@ -152,11 +178,17 @@ class GitHubBackendSetup {
             { path: 'data/settings.json', defaultContent: this.getDefaultSettings() }
         ];
         
+        // Make sure GitHub Setup tab is visible
+        this.ensureSetupTabVisibility();
+        
+        // Initialize UI and set up event handlers
         this.initializeUI();
         this.setupEvents();
         
         // Automatically check token status on initialization
         this.checkTokenStatus();
+        
+        console.log('✅ [GITHUB-SETUP] GitHub Backend Setup initialized');
     }
 
     // Check token status and display appropriate messages
