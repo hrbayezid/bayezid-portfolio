@@ -38,5 +38,13 @@
     "description": "",
     "image": "images/default-project.jpg",
     "createdAt": "2025-05-03T06:03:07.526Z"
+  },
+  {
+    "id": "1746253270754",
+    "title": "vizualization",
+    "category": "viz",
+    "description": "",
+    "image": "images/default-project.jpg",
+    "createdAt": "2025-05-03T06:21:10.754Z"
   }
 ]
