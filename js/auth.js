@@ -33,6 +33,15 @@ class AuthManager {
                 this.isAuthenticated = true;
                 console.log('User already authenticated:', this.currentUser.username);
                 this.updateUIForAuthenticatedUser();
+                
+                // Make sure GitHub token is loaded if we're already authenticated
+                if (window.githubService) {
+                    const token = localStorage.getItem('active_github_token');
+                    if (token) {
+                        console.log('Reloading existing GitHub token');
+                        window.githubService.loadToken();
+                    }
+                }
             } catch (error) {
                 console.error('Error parsing user data:', error);
                 this.handleLogout();
@@ -146,6 +155,15 @@ class AuthManager {
             // Show success notification
             this.showNotification('Login successful! Welcome to the admin dashboard.');
             
+            // Make sure GitHub token is loaded if available
+            if (window.githubService) {
+                const token = localStorage.getItem('active_github_token');
+                if (token) {
+                    window.githubService.loadToken();
+                    window.githubService.initialLoadData();
+                }
+            }
+            
             // Redirect to dashboard
             window.location.hash = '#dashboard';
         } else {
@@ -172,9 +190,12 @@ class AuthManager {
         this.isAuthenticated = false;
         this.currentUser = null;
         
-        // Clear localStorage
+        // Clear localStorage authentication
         localStorage.removeItem('adminLoggedIn');
         localStorage.removeItem('userData');
+        
+        // Note: We don't remove GitHub token on logout so it persists
+        // Only clear GitHub token if specifically requested
         
         // Update UI
         this.updateUIForUnauthenticatedUser();
@@ -232,6 +253,73 @@ class AuthManager {
             userInfo.classList.remove('hidden');
             userInfo.querySelector('span').textContent = `Logged in as ${this.currentUser.username}`;
         }
+        
+        // Ensure GitHub Setup tab is visible in admin dashboard
+        const setupTab = document.querySelector('[data-tab="github-setup"]');
+        if (setupTab) {
+            console.log('📋 Ensuring GitHub Setup tab is visible after login');
+            setupTab.style.display = '';
+            
+            // Re-initialize dashboard tabs to ensure proper rendering
+            if (typeof window.setupDashboardTabs === 'function') {
+                window.setupDashboardTabs();
+                console.log('🔄 Re-initialized dashboard tabs after login');
+            }
+        } else {
+            console.warn('⚠️ GitHub Setup tab not found in the DOM after login');
+        }
+        
+        // Check GitHub token status and show appropriate message
+        this.checkGitHubTokenStatus();
+    }
+    
+    /**
+     * Check GitHub token status and provide feedback
+     */
+    checkGitHubTokenStatus() {
+        setTimeout(() => {
+            if (window.githubService) {
+                const token = localStorage.getItem('active_github_token');
+                if (token) {
+                    console.log('🔑 GitHub token found after login');
+                    
+                    // Validate the token
+                    window.githubService.validateToken().then(result => {
+                        const statusEl = document.getElementById('github-status');
+                        if (statusEl) {
+                            if (result.valid) {
+                                statusEl.innerHTML = `
+                                    <p class="text-green-400">
+                                        <i class="fas fa-check-circle mr-2"></i>
+                                        Connected to GitHub as ${result.username}
+                                    </p>
+                                `;
+                            } else {
+                                statusEl.innerHTML = `
+                                    <p class="text-yellow-400">
+                                        <i class="fas fa-exclamation-circle mr-2"></i>
+                                        GitHub token validation failed: ${result.message}
+                                    </p>
+                                `;
+                            }
+                        }
+                    });
+                } else {
+                    console.warn('⚠️ No GitHub token found after login');
+                    const statusEl = document.getElementById('github-status');
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <p class="text-yellow-400">
+                                <i class="fas fa-exclamation-circle mr-2"></i>
+                                No GitHub token set. Go to GitHub Setup tab to configure.
+                            </p>
+                        `;
+                    }
+                }
+            } else {
+                console.error('❌ GitHub service not available after login');
+            }
+        }, 500); // Small delay to ensure services are initialized
     }
     
     /**
@@ -281,20 +369,27 @@ class AuthManager {
     }
     
     /**
-     * Reset user data (for testing purposes)
+     * Reset all user data including GitHub token (only for testing/debugging)
      */
     resetUserData() {
-        if (confirm('Are you sure you want to reset all user data? This will log you out.')) {
+        if (confirm('Are you sure you want to reset ALL user data? This will clear GitHub tokens and log you out.')) {
             localStorage.removeItem('adminLoggedIn');
             localStorage.removeItem('userData');
             localStorage.removeItem('active_github_token');
+            localStorage.removeItem('github_setup_complete');
             
             // Clear any other app data that might be in localStorage
             localStorage.removeItem('skills');
             localStorage.removeItem('projects');
+            localStorage.removeItem('profile');
             
-            // Reload the page
-            window.location.reload();
+            // Show notification
+            this.showNotification('All user data has been reset. The page will now reload.', 'success');
+            
+            // Reload the page after a brief delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
         }
     }
     

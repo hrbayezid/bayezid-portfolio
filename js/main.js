@@ -20,9 +20,16 @@ window.API_ENDPOINTS = {
 
 // Function to initialize the GitHub Service
 function initializeGitHubService() {
+    // Check if we're in a GitHub Pages environment
+    const isGitHubPages = isGitHubPagesEnvironment();
+    console.log(`🌐 Running on GitHub Pages: ${isGitHubPages}`);
+    
+    // Make sure GitHub service is available globally
     if (!window.githubService) {
+        console.log('Creating new GitHub service instance');
         window.githubService = new GitHubService();
-        console.log('GitHub Service initialized');
+    } else {
+        console.log('GitHub service already initialized');
     }
 }
 
@@ -788,10 +795,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setupSkillsAndProjectsButtons();
         setupSettingsButtons();
         
-        // Check if we need to show the GitHub setup UI
-        if (isGitHubPagesEnvironment() && !localStorage.getItem('github_setup_complete')) {
-            console.log('GitHub setup not complete, should show setup UI');
-        }
+        // Always ensure GitHub setup tab is visible after login
+        ensureGitHubSetupTabIsVisible();
     } else {
         console.log('📄 Public page detected, loading portfolio data');
         
@@ -878,6 +883,27 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('Portfolio initialization complete');
 });
+
+// Make sure GitHub Setup tab is visible after login
+function ensureGitHubSetupTabIsVisible() {
+    console.log('🔄 Checking GitHub Setup tab visibility...');
+    
+    const setupTab = document.querySelector('[data-tab="github-setup"]');
+    const setupContent = document.getElementById('github-setup-tab');
+    
+    if (setupTab && setupContent) {
+        // Make sure the tab is in the DOM and not hidden with display: none
+        setupTab.style.display = '';
+        
+        // Debug log
+        console.log('✅ GitHub Setup tab is available in the DOM');
+        
+        // We won't show it automatically, but make sure it's available
+        // for selection in the dashboard tabs
+    } else {
+        console.error('❌ GitHub Setup tab not found in the DOM');
+    }
+}
 
 // Load portfolio data for public pages
 async function loadPublicPortfolioData() {
