@@ -540,28 +540,77 @@
             cursor: default;
         }
         .btn {
-            @apply px-6 py-3 rounded-lg font-medium transition-all duration-300 transform hover:scale-[1.03] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-50 shadow-md;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition-property: all;
+            transition-duration: 300ms;
+            transform: translateZ(0);
+            transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .btn:hover {
+            transform: scale(1.03);
+        }
+        .btn:focus {
+            outline: none;
+            --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+            --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+            box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+            --tw-ring-opacity: 0.5;
+            --tw-ring-offset-width: 2px;
         }
         .btn-primary {
-            @apply bg-gradient-to-r from-primary-500 to-accent-500 text-white hover:from-primary-600 hover:to-accent-600 focus:ring-primary-500;
+            background-image: linear-gradient(to right, var(--tw-gradient-stops));
+            --tw-gradient-from: #06b6d4;
+            --tw-gradient-to: #d946ef;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+            color: white;
+        }
+        .btn-primary:hover {
+            --tw-gradient-from: #0891b2;
+            --tw-gradient-to: #c026d3;
+        }
+        .btn-primary:focus {
+            --tw-ring-color: #06b6d4;
         }
         .btn-secondary {
-            @apply glass-effect text-gray-700 dark:text-gray-200 hover:bg-white/20 dark:hover:bg-white/10 focus:ring-gray-400;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+            color: #374151;
+        }
+        .dark .btn-secondary {
+            color: #e5e7eb;
+        }
+        .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        .dark .btn-secondary:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .btn-secondary:focus {
+            --tw-ring-color: #9ca3af;
         }
         .indicator-dot {
-            @apply inline-block w-2.5 h-2.5 rounded-full mr-2;
+            display: inline-block;
+            width: 0.625rem;
+            height: 0.625rem;
+            border-radius: 9999px;
+            margin-right: 0.5rem;
             position: relative;
         }
         .indicator-dot.completed {
-            @apply bg-emerald-500;
+            background-color: #10b981;
             box-shadow: 0 0 6px rgba(16, 185, 129, 0.5);
         }
         .indicator-dot.in-progress {
-            @apply bg-amber-500; 
+            background-color: #f59e0b;
             box-shadow: 0 0 6px rgba(245, 158, 11, 0.5);
         }
         .indicator-dot.planned {
-            @apply bg-sky-500;
+            background-color: #0ea5e9;
             box-shadow: 0 0 6px rgba(14, 165, 233, 0.5);
         }
         .shimmer {
@@ -605,9 +654,64 @@
             -ms-user-select: text;
             user-select: text;
         }
+        /* Toggle Switch for GitHub Integration */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+        
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: #6366f1;
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #6366f1;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+        
+        .slider.round {
+            border-radius: 24px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
     </style>
 </head>
-<body>
+<body class="dark">
     <nav role="navigation" aria-label="Main navigation" class="fixed top-0 w-full glass-effect z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
@@ -659,21 +763,11 @@
                     </button>
                     
                     <!-- Theme Toggle Button -->
-                    <button id="theme-toggle" 
-                        class="p-2 rounded-lg bg-white/10 hover:bg-white/20 dark:bg-gray-800/20 dark:hover:bg-gray-800/40 transition-all duration-300 text-gray-700 dark:text-gray-200"
-                        aria-label="Toggle dark/light mode">
-                        <i class="fas fa-moon hidden dark:inline-block"></i>
-                        <i class="fas fa-sun inline-block dark:hidden"></i>
-                    </button>
+                    <!-- Removed theme toggle button as the site will be in permanent dark mode -->
                 </div>
                 <div class="md:hidden flex items-center space-x-4">
                     <!-- Theme Toggle Button (Mobile) -->
-                    <button id="theme-toggle-mobile" 
-                        class="p-2 rounded-lg bg-white/10 hover:bg-white/20 dark:bg-gray-800/20 dark:hover:bg-gray-800/40 transition-all duration-300 text-gray-700 dark:text-gray-200"
-                        aria-label="Toggle dark/light mode">
-                        <i class="fas fa-moon hidden dark:inline-block"></i>
-                        <i class="fas fa-sun inline-block dark:hidden"></i>
-                    </button>
+                    <!-- Removed theme toggle button as the site will be in permanent dark mode -->
                 
                     <button id="mobile-menu-button" 
                         aria-label="Toggle mobile menu"
@@ -758,98 +852,39 @@
         <section id="skills" class="py-16 relative" aria-label="Skills overview">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-center mb-6 gradient-text animate-float font-display" data-editable="skills-title">My Skills</h2>
-                <p class="text-center text-gray-400 max-w-3xl mx-auto mb-12" data-editable="skills-subtitle">Developing my data analysis toolkit with a focus on these key areas:</p>
+                <p class="text-center text-gray-400 max-w-3xl mx-auto mb-12" data-editable="skills-subtitle">Here are my key skills in data science, analytics, and programming:</p>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-                    <!-- Programming & Tools -->
-                    <div class="glass-effect rounded-xl p-6 animate-slide-up hover:shadow-highlight transition-all duration-300" id="skills-section-1">
-                        <h3 class="text-xl font-bold mb-6 font-display flex items-center">
-                            <i class="fas fa-code mr-3 text-primary-500 dark:text-primary-400"></i>
-                            <span data-editable="skills-section-1-title">Programming & Tools</span>
-                        </h3>
-                        <div class="space-y-4" id="programming-skills">
-                            <!-- Skill items will be dynamically generated -->
-                            <div class="space-y-2 skill-item">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-medium" data-editable="skill-1-name">Python</span>
-                                    <span class="text-sm text-primary-400" data-editable="skill-1-level">Intermediate</span>
+                <!-- Dynamic skills grid that will be populated by SkillsManager -->
+                <div id="skills-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+                    <!-- Skills will be dynamically loaded here from localStorage -->
                         </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full" style="width: 70%" data-editable="skill-1-percentage" data-percentage="70"></div>
-                    </div>
-                        </div>
-                            <div class="space-y-2 skill-item">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-medium" data-editable="skill-2-name">SQL</span>
-                                    <span class="text-sm text-primary-400" data-editable="skill-2-level">Beginner</span>
-                    </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full" style="width: 40%" data-editable="skill-2-percentage" data-percentage="40"></div>
-                        </div>
-                    </div>
-                            <div class="space-y-2 skill-item">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-medium" data-editable="skill-3-name">Excel</span>
-                                    <span class="text-sm text-primary-400" data-editable="skill-3-level">Intermediate</span>
-                        </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full" style="width: 75%" data-editable="skill-3-percentage" data-percentage="75"></div>
-                                </div>
-                            </div>
-                            <div class="space-y-2 skill-item">
-                                <div class="flex justify-between items-center">
-                                    <span class="font-medium" data-editable="skill-4-name">Power BI</span>
-                                    <span class="text-sm text-primary-400" data-editable="skill-4-level">Beginner</span>
-                                </div>
-                                <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                    <div class="bg-gradient-to-r from-primary-500 to-purple-500 h-2 rounded-full" style="width: 45%" data-editable="skill-4-percentage" data-percentage="45"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Data Analysis Libraries -->
-                    <div class="glass-effect rounded-xl p-6 animate-slide-up hover:shadow-highlight transition-all duration-300" id="skills-section-2">
-                        <h3 class="text-xl font-bold mb-6 font-display flex items-center">
-                            <i class="fas fa-chart-bar mr-3 text-primary-500 dark:text-primary-400"></i>
-                            <span data-editable="skills-section-2-title">Data Analysis Libraries</span>
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4" id="library-skills">
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-blue-500 to-purple-500 font-medium flex items-center justify-center" data-editable="library-1">
-                                <i class="fas fa-table mr-2"></i>Pandas
-                            </div>
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-blue-500 to-purple-500 font-medium flex items-center justify-center" data-editable="library-2">
-                                <i class="fas fa-calculator mr-2"></i>NumPy
-                            </div>
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-purple-500 to-pink-500 font-medium flex items-center justify-center" data-editable="library-3">
-                                <i class="fas fa-chart-line mr-2"></i>Matplotlib
-                            </div>
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-purple-500 to-pink-500 font-medium flex items-center justify-center" data-editable="library-4">
-                                <i class="fas fa-chart-area mr-2"></i>Seaborn
-                            </div>
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-cyan-500 to-blue-500 font-medium flex items-center justify-center" data-editable="library-5">
-                                <i class="fas fa-project-diagram mr-2"></i>Plotly
-                            </div>
-                            <div class="skill-tag px-4 py-2 rounded-full text-white bg-gradient-to-r from-cyan-500 to-blue-500 font-medium flex items-center justify-center" data-editable="library-6">
-                                <i class="fas fa-code-branch mr-2"></i>Git
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 
-                <!-- Currently Learning -->
+                <!-- Fallback static skills (will be hidden when dynamic content is loaded) -->
+                <div id="static-skills" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <!-- This section is now hidden -->
+                    </div>
+                
+                <!-- Add skill button for authenticated users -->
+                <div class="flex justify-center mt-8">
+                    <button id="add-skill-public" class="glass-effect px-6 py-3 rounded-xl hover:shadow-highlight transition-all duration-300 flex items-center text-primary-500">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        <span>Add Your First Skill</span>
+                    </button>
+                        </div>
+                
+                <!-- Currently Learning Section (can be toggled by user preference) -->
                 <div class="glass-effect rounded-xl p-6 animate-slide-up mt-8 max-w-4xl mx-auto" id="currently-learning-section">
                     <h3 class="text-xl font-bold mb-4 font-display text-center" data-editable="learning-title">Currently Learning</h3>
                     <div class="flex flex-wrap justify-center gap-3" id="learning-skills">
                         <div class="px-4 py-2 bg-gray-200/30 dark:bg-gray-700/30 rounded-full text-gray-600 dark:text-gray-300 text-sm" data-editable="learning-1">
                             <i class="fas fa-brain mr-1"></i>Machine Learning
-                        </div>
+                    </div>
                         <div class="px-4 py-2 bg-gray-200/30 dark:bg-gray-700/30 rounded-full text-gray-600 dark:text-gray-300 text-sm" data-editable="learning-2">
                             <i class="fas fa-database mr-1"></i>SQL Advanced
                         </div>
                         <div class="px-4 py-2 bg-gray-200/30 dark:bg-gray-700/30 rounded-full text-gray-600 dark:text-gray-300 text-sm" data-editable="learning-3">
                             <i class="fas fa-chart-pie mr-1"></i>Scikit-Learn
-                        </div>
+                    </div>
                         <div class="px-4 py-2 bg-gray-200/30 dark:bg-gray-700/30 rounded-full text-gray-600 dark:text-gray-300 text-sm" data-editable="learning-4">
                             <i class="fas fa-server mr-1"></i>Data Science Fundamentals
                         </div>
@@ -867,209 +902,38 @@
                 
                 <!-- Project filters -->
                 <div class="flex flex-wrap justify-center gap-4 mb-10">
-                    <button class="project-filter px-4 py-2 rounded-lg glass-effect active" data-filter="all">All Projects</button>
-                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="analysis">Data Analysis</button>
-                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="viz">Data Visualization</button>
-                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="ml">Machine Learning</button>
-                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="dashboard">Dashboards</button>
-            </div>
-                
+                    <button class="project-filter px-4 py-2 rounded-lg glass-effect active-filter" data-filter="all">All Projects</button>
+                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="Data Analysis">Data Analysis</button>
+                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="Data Visualization">Data Visualization</button>
+                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="Machine Learning">Machine Learning</button>
+                    <button class="project-filter px-4 py-2 rounded-lg glass-effect" data-filter="Dashboard">Dashboards</button>
+                </div>
+                    
+                <!-- Projects grid container -->
                 <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-[1200px] mx-auto">
-                    <!-- Project 1 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="analysis">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-primary-500/80 text-white text-xs rounded-full backdrop-blur-sm">Data Analysis</span>
-                            </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=Sales+Data+Analysis" alt="Sales Data Analysis" class="w-full h-full object-cover">
-                            </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">Sales Data Analysis</h3>
-                            <p class="text-gray-400 text-sm mb-4">Analyzed retail sales data to identify trends and patterns in customer purchasing behavior across different regions.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Pandas</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">NumPy</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Excel</span>
-                        </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                            <i class="fab fa-github"></i>
-                        </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
+                    <!-- Projects will be dynamically loaded here from localStorage -->
                 </div>
-            </div>
-                    </div>
-
-                    <!-- Project 2 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="viz">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-accent-500/80 text-white text-xs rounded-full backdrop-blur-sm">Data Visualization</span>
-                    </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=Climate+Data+Visualization" alt="Climate Data Visualization" class="w-full h-full object-cover">
-                </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">Climate Data Visualization</h3>
-                            <p class="text-gray-400 text-sm mb-4">Created interactive visualizations of global climate data to show temperature trends over the last century.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Matplotlib</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">Seaborn</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Plotly</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fab fa-github"></i>
-                                    </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Project 3 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="dashboard">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-blue-500/80 text-white text-xs rounded-full backdrop-blur-sm">Dashboard</span>
-                                    </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=COVID+Dashboard" alt="COVID-19 Data Dashboard" class="w-full h-full object-cover">
-                                    </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">COVID-19 Data Dashboard</h3>
-                            <p class="text-gray-400 text-sm mb-4">Built an interactive dashboard to visualize and track COVID-19 cases, recoveries, and vaccination rates.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Plotly</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">Dash</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Pandas</span>
-                                </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fab fa-github"></i>
-                                    </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    </div>
-                    
-                    <!-- Project 4 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="analysis">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-green-500/80 text-white text-xs rounded-full backdrop-blur-sm">Data Analysis</span>
-                                </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=Customer+Segmentation" alt="Customer Segmentation Analysis" class="w-full h-full object-cover">
-                                </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">Customer Segmentation Analysis</h3>
-                            <p class="text-gray-400 text-sm mb-4">Analyzed customer data to identify distinct customer segments based on purchasing behavior and demographics.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Pandas</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">Clustering</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Visualization</span>
-                                </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fab fa-github"></i>
-                                    </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Project 5 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="ml">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-primary-500/80 text-white text-xs rounded-full backdrop-blur-sm">Machine Learning</span>
-                            </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=Simple+Price+Prediction" alt="House Price Prediction" class="w-full h-full object-cover">
-                            </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">House Price Prediction</h3>
-                            <p class="text-gray-400 text-sm mb-4">Built a simple linear regression model to predict house prices based on key features like size, location, and amenities.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Scikit-Learn</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">Linear Regression</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Data Cleaning</span>
-                        </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fab fa-github"></i>
-                                    </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                    </div>
-                                    </div>
-                                </div>
-                                    </div>
-                    
-                    <!-- Project 6 -->
-                    <div class="project-card relative overflow-hidden rounded-xl animate-slide-up" data-category="viz">
-                        <div class="absolute top-4 right-4 z-10">
-                            <span class="px-3 py-1 bg-accent-500/80 text-white text-xs rounded-full backdrop-blur-sm">Data Visualization</span>
-                                </div>
-                        <div class="h-52 overflow-hidden">
-                            <img src="https://via.placeholder.com/600x400?text=Financial+Dashboard" alt="Personal Finance Dashboard" class="w-full h-full object-cover">
-                                    </div>
-                        <div class="p-6">
-                            <h3 class="text-xl font-bold font-display mb-2">Personal Finance Dashboard</h3>
-                            <p class="text-gray-400 text-sm mb-4">Created an interactive dashboard to visualize personal spending habits, savings patterns, and budget allocation.</p>
-                            <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full">Plotly</span>
-                                <span class="px-2 py-1 bg-green-500/10 text-green-500 dark:text-green-300 text-xs rounded-full">Pandas</span>
-                                <span class="px-2 py-1 bg-purple-500/10 text-purple-500 dark:text-purple-300 text-xs rounded-full">Excel</span>
-                                </div>
-                            <div class="flex justify-between items-center">
-                                <a href="#" class="text-primary-500 hover:text-primary-600 dark:hover:text-primary-400 text-sm font-medium transition-colors">
-                                    View Details <i class="fas fa-arrow-right ml-1"></i>
-                                </a>
-                                <div class="flex space-x-2">
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fab fa-github"></i>
-                                    </a>
-                                    <a href="#" class="text-gray-400 hover:text-primary-500 transition-colors">
-                                        <i class="fas fa-external-link-alt"></i>
-                                    </a>
-                                </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
                 
-                <!-- Project pagination/load more -->
-                <div class="text-center mt-12">
+                <!-- Empty state with Add Project button -->
+                <div id="no-projects-message" class="text-center py-10 hidden">
+                    <div class="glass-effect p-8 rounded-xl max-w-md mx-auto">
+                        <i class="fas fa-folder-open text-4xl text-gray-400 mb-4"></i>
+                        <h3 class="text-xl font-bold mb-3">No Projects Yet</h3>
+                        <p class="text-gray-400 mb-6">Add your first project to showcase your data science skills.</p>
+                        <button id="add-project-public" class="px-6 py-3 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
+                            <i class="fas fa-plus-circle mr-2"></i>Add Your First Project
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Project pagination at the bottom -->
+                <div class="flex justify-center mt-12">
+                    <a href="#" id="view-more-projects" class="glass-effect px-6 py-3 rounded-lg hover:bg-white/10 transition-all duration-300 flex items-center">
+                        <span>View More Projects</span>
+                        <i class="fas fa-chevron-down ml-2"></i>
+                    </a>
+                </div>
+            </div>
         </section>
 
         <section id="contact" class="py-16 relative" aria-label="Contact information">
@@ -1083,23 +947,23 @@
                         <div class="glass-effect rounded-xl p-5 flex items-start space-x-4 hover:shadow-highlight transition-all duration-300">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 flex items-center justify-center text-white shadow-highlight-sm">
                                 <i class="fas fa-envelope"></i>
-            </div>
+                            </div>
                 <div>
                                 <h3 class="font-bold text-lg mb-1 font-display">Email</h3>
                                 <p class="text-gray-400 text-sm mb-2">For project inquiries and opportunities</p>
                                 <a href="mailto:hrbayezid@gmail.com" class="text-primary-500 hover:text-primary-400 transition-colors font-medium">hrbayezid@gmail.com</a>
-                    </div>
+                            </div>
                         </div>
                         
                         <div class="glass-effect rounded-xl p-5 flex items-start space-x-4 hover:shadow-highlight transition-all duration-300">
                             <div class="w-10 h-10 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 flex items-center justify-center text-white shadow-highlight-sm">
                                 <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <div>
+                        </div>
+                        <div>
                                 <h3 class="font-bold text-lg mb-1 font-display">Location</h3>
                                 <p class="text-gray-400 text-sm mb-2">Based in</p>
                                 <p class="font-medium">Dhaka, Bangladesh</p>
-                    </div>
+                        </div>
                 </div>
                         
                         <div class="glass-effect rounded-xl p-5 flex items-start space-x-4 hover:shadow-highlight transition-all duration-300">
@@ -1112,30 +976,30 @@
                                 <p><span class="inline-block w-2.5 h-2.5 rounded-full bg-green-500 mr-2 align-middle"></span> <span class="font-medium">Open to opportunities</span></p>
                 </div>
                         </div>
-                        
+                    
                         <!-- Social Media Icons -->
                         <div class="pt-4 flex justify-center space-x-4">
-                            <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" 
-                                class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                        <a href="https://github.com/hrbayezid" target="_blank" rel="noopener noreferrer" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
                                 title="GitHub">
-                                <i class="fab fa-github"></i>
-                            </a>
-                            <a href="https://linkedin.com/in/your-linkedin" target="_blank" rel="noopener noreferrer" 
-                                class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://linkedin.com/in/your-linkedin" target="_blank" rel="noopener noreferrer" 
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
                                 title="LinkedIn">
-                                <i class="fab fa-linkedin"></i>
-                            </a>
+                            <i class="fab fa-linkedin"></i>
+                        </a>
                             <a href="https://kaggle.com/yourusername" target="_blank" rel="noopener noreferrer" 
-                                class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
                                 title="Kaggle">
                                 <i class="fab fa-kaggle"></i>
-                            </a>
+                        </a>
                             <a href="https://medium.com/@yourusername" target="_blank" rel="noopener noreferrer" 
-                                class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
+                            class="social-icon text-2xl hover:text-primary-400 transition-all duration-300"
                                 title="Medium">
                                 <i class="fab fa-medium"></i>
-                    </a>
-                </div>
+                        </a>
+                    </div>
                 </div>
                     
                     <!-- Contact Form -->
@@ -1152,7 +1016,7 @@
                                         <input id="from-name" type="text" required
                                             class="w-full p-2.5 pl-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
                                             placeholder="Your Name">
-                    </div>
+            </div>
                 </div>
                                 <div class="flex-1">
                                     <label for="from-email" class="text-sm font-medium mb-1.5 block">Email</label>
@@ -1190,7 +1054,7 @@
                                         placeholder="Tell me about your project or inquiry..."></textarea>
                     </div>
                 </div>
-                            
+                
                             <div class="flex items-start">
                                 <div class="flex items-center h-5">
                                     <input id="newsletter" type="checkbox" value="" class="form-checkbox text-primary-500 rounded">
@@ -1203,11 +1067,11 @@
                             <button type="submit"
                                 class="w-full py-3 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
                                 <i class="fas fa-paper-plane mr-2"></i>Send Message
-                        </button>
+                                </button>
             </form>
-                    </div>
-                </div>
-                </div>
+                            </div>
+                            </div>
+                        </div>
         </section>
 
         <!-- Certifications & Education Section -->
@@ -1233,8 +1097,8 @@
                                 <!-- Timeline dot -->
                                 <div class="absolute left-0 top-0 w-7 h-7 rounded-full bg-gradient-to-r from-primary-500 to-accent-500 flex items-center justify-center z-10">
                                     <div class="w-3 h-3 rounded-full bg-white dark:bg-gray-900"></div>
-                                </div>
-                                
+                    </div>
+
                                 <div class="glass-effect rounded-xl p-5 hover:shadow-highlight transition-all duration-300">
                                     <div class="flex justify-between items-start">
                                         <h4 class="text-lg font-bold font-display" data-editable="education-1-degree">BSc in Computer Science</h4>
@@ -1246,12 +1110,12 @@
                                         <span class="px-2 py-1 bg-blue-500/10 text-blue-500 dark:text-blue-300 text-xs rounded-full" data-editable="education-1-gpa">GPA: 3.65/4.0</span>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                    
+                                    </div>
+                                    </div>
+                                    </div>
+
                     <!-- Certifications Column -->
-                    <div>
+                                    <div>
                         <h3 class="text-xl font-bold mb-6 font-display flex items-center">
                             <i class="fas fa-certificate mr-3 text-primary-500 dark:text-primary-400"></i>
                             <span data-editable="certifications-title">Certifications</span>
@@ -1271,16 +1135,16 @@
                                     <div class="flex justify-between">
                                         <span class="text-xs text-gray-400" data-editable="cert-1-id">Credential ID: DA-123456</span>
                                         <span class="text-xs text-gray-400" data-editable="cert-1-date">2023</span>
-                                    </div>
                                 </div>
-                            </div>
-                            
+                        </div>
+                    </div>
+
                             <!-- Certification 2 -->
                             <div class="glass-effect rounded-xl p-5 hover:shadow-highlight transition-all duration-300 flex certification-item">
                                 <div class="mr-4 flex-shrink-0">
                                     <div class="w-12 h-12 rounded-lg bg-accent-500/10 flex items-center justify-center">
                                         <i class="fas fa-chart-bar text-xl text-accent-500" data-editable="cert-2-icon" data-icon="fas fa-chart-bar"></i>
-                                    </div>
+                            </div>
                                 </div>
                                 <div>
                                     <h4 class="text-lg font-bold font-display" data-editable="cert-2-name">Data Visualization with Python</h4>
@@ -1288,10 +1152,10 @@
                                     <div class="flex justify-between">
                                         <span class="text-xs text-gray-400" data-editable="cert-2-id">Credential ID: DV-78910</span>
                                         <span class="text-xs text-gray-400" data-editable="cert-2-date">2023</span>
-                                    </div>
-                                </div>
                             </div>
-                            
+                        </div>
+                    </div>
+
                             <!-- Certification 3 -->
                             <div class="glass-effect rounded-xl p-5 hover:shadow-highlight transition-all duration-300 flex certification-item">
                                 <div class="mr-4 flex-shrink-0">
@@ -1307,14 +1171,14 @@
                                         <span class="text-xs text-gray-400" data-editable="cert-3-date">2022</span>
                                     </div>
                                 </div>
-                            </div>
-                            
+                                    </div>
+                
                             <!-- Certification 4 -->
                             <div class="glass-effect rounded-xl p-5 hover:shadow-highlight transition-all duration-300 flex certification-item">
                                 <div class="mr-4 flex-shrink-0">
                                     <div class="w-12 h-12 rounded-lg bg-accent-500/10 flex items-center justify-center">
                                         <i class="fas fa-table text-xl text-accent-500" data-editable="cert-4-icon" data-icon="fas fa-table"></i>
-                                    </div>
+                                </div>
                                 </div>
                                 <div>
                                     <h4 class="text-lg font-bold font-display" data-editable="cert-4-name">Excel for Data Analysis</h4>
@@ -1332,9 +1196,332 @@
         </section>
     </main>
 
+    <!-- Dashboard Section - Only visible for admin users -->
+    <section id="dashboard" class="py-16 min-h-screen hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-3xl font-bold mb-8 gradient-text font-display">Admin Dashboard</h2>
+            
+            <!-- Dashboard Navigation Tabs -->
+            <div class="mb-8 flex flex-wrap border-b border-gray-700">
+                <button class="dashboard-tab active px-4 py-3 font-medium" data-tab="overview">
+                    <i class="fas fa-chart-pie mr-2"></i>Overview
+    </button>
+                <button class="dashboard-tab px-4 py-3 font-medium" data-tab="skills">
+                    <i class="fas fa-laptop-code mr-2"></i>Skills Manager
+                </button>
+                <button class="dashboard-tab px-4 py-3 font-medium" data-tab="projects">
+                    <i class="fas fa-project-diagram mr-2"></i>Projects Manager
+                </button>
+                <button class="dashboard-tab px-4 py-3 font-medium" data-tab="settings">
+                    <i class="fas fa-cog mr-2"></i>Settings
+                </button>
+            </div>
+            
+            <!-- Dashboard Content Areas -->
+            <div class="dashboard-content-container">
+                <!-- Overview Tab -->
+                <div id="overview-tab" class="dashboard-content">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-medium mb-2">Skills</h3>
+                            <div class="flex items-end">
+                                <span class="text-4xl font-bold gradient-text">0</span>
+                                <button id="add-skill-quick" class="ml-auto bg-primary-500 hover:bg-primary-600 text-white px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-plus mr-1"></i>Add
+                                </button>
+                    </div>
+                </div>
+                        
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-medium mb-2">Projects</h3>
+                            <div class="flex items-end">
+                                <span class="text-4xl font-bold gradient-text">0</span>
+                                <button id="add-project-quick" class="ml-auto bg-primary-500 hover:bg-primary-600 text-white px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-plus mr-1"></i>Add
+                        </button>
+                    </div>
+                </div>
+
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-medium mb-2">Site Status</h3>
+                            <div class="flex items-end">
+                                <span class="text-lg font-medium text-emerald-500"><i class="fas fa-check-circle mr-2"></i>Online</span>
+                                <button id="rebuild-site" class="ml-auto bg-primary-500 hover:bg-primary-600 text-white px-3 py-1 rounded-lg text-sm">
+                                    <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                    </div>
+                </div>
+                </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-medium mb-4">Quick Actions</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <button id="add-skill-btn" class="glass-effect hover:bg-primary-500/10 px-4 py-3 rounded-xl flex items-center">
+                                    <i class="fas fa-plus-circle text-primary-500 mr-3 text-xl"></i>
+                                    <span>Add Skill</span>
+                </button>
+                                <button id="add-project-btn" class="glass-effect hover:bg-primary-500/10 px-4 py-3 rounded-xl flex items-center">
+                                    <i class="fas fa-plus-circle text-primary-500 mr-3 text-xl"></i>
+                                    <span>Add Project</span>
+                </button>
+                                <button id="clear-skills-btn" class="glass-effect hover:bg-red-500/10 px-4 py-3 rounded-xl flex items-center">
+                                    <i class="fas fa-trash text-red-500 mr-3 text-xl"></i>
+                                    <span>Clear Skills</span>
+                                </button>
+                                <button id="clear-projects-btn" class="glass-effect hover:bg-red-500/10 px-4 py-3 rounded-xl flex items-center">
+                                    <i class="fas fa-trash text-red-500 mr-3 text-xl"></i>
+                                    <span>Clear Projects</span>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-xl p-6">
+                            <h3 class="text-lg font-medium mb-4">Recent Activity</h3>
+                            <div class="space-y-4">
+                                <!-- Activities will be dynamically loaded here -->
+                                <p class="text-gray-400">No recent activity</p>
+                    </div>
+                </div>
+                    </div>
+                </div>
+                
+                <!-- Skills Manager Tab -->
+                <div id="skills-tab" class="dashboard-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Manage Skills</h3>
+                        <button id="add-skill-main" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-plus mr-2"></i>Add New Skill
+                        </button>
+                    </div>
+                    
+                    <div class="glass-effect rounded-xl p-6 mb-6">
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <button class="skill-filter active px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="all">All Skills</button>
+                            <button class="skill-filter px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="programming">Programming</button>
+                            <button class="skill-filter px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="data-analysis">Data Analysis</button>
+                            <button class="skill-filter px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="data-visualization">Data Visualization</button>
+                            <button class="skill-filter px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="machine-learning">Machine Learning</button>
+                    </div>
+                        
+                        <!-- Skills list table -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Name</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Proficiency</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="skills-table-body" class="divide-y divide-gray-700">
+                                    <!-- Skills will be dynamically added here -->
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-4 text-center text-gray-400">No skills found. Add a new skill to get started.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                </div>
+                    </div>
+                </div>
+
+                <!-- Projects Manager Tab -->
+                <div id="projects-tab" class="dashboard-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Manage Projects</h3>
+                        <button id="add-project-main" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-plus mr-2"></i>Add New Project
+                        </button>
+                    </div>
+                    
+                    <div class="glass-effect rounded-xl p-6 mb-6">
+                        <div class="flex flex-wrap gap-4 mb-4">
+                            <button class="project-filter-admin active px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="all">All Projects</button>
+                            <button class="project-filter-admin px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="analysis">Data Analysis</button>
+                            <button class="project-filter-admin px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="viz">Data Visualization</button>
+                            <button class="project-filter-admin px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="ml">Machine Learning</button>
+                            <button class="project-filter-admin px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20" data-filter="dashboard">Dashboards</button>
+                </div>
+                        
+                        <!-- Projects list table -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-700">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Title</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Category</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Tags</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="projects-table-body" class="divide-y divide-gray-700">
+                                    <!-- Projects will be dynamically added here -->
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-4 text-center text-gray-400">No projects found. Add a new project to get started.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                </div>
+        </div>
+    </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="dashboard-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Site Settings</h3>
+                        <button id="save-settings" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-save mr-2"></i>Save Changes
+                </button>
+            </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h4 class="text-lg font-medium mb-4">Profile Information</h4>
+                            <form id="profile-form" class="space-y-4">
+                                <div>
+                                    <label for="profile-name" class="block text-sm font-medium mb-1">Name</label>
+                                    <input type="text" id="profile-name" class="w-full p-2 rounded-lg" placeholder="Your Name">
+                        </div>
+                        <div>
+                                    <label for="profile-title" class="block text-sm font-medium mb-1">Professional Title</label>
+                                    <input type="text" id="profile-title" class="w-full p-2 rounded-lg" placeholder="e.g. Data Analyst">
+                        </div>
+                                <div>
+                                    <label for="profile-intro" class="block text-sm font-medium mb-1">Short Introduction</label>
+                                    <textarea id="profile-intro" class="w-full p-2 rounded-lg" rows="3" placeholder="A brief introduction about yourself"></textarea>
+                    </div>
+                                <div>
+                                    <label for="profile-image" class="block text-sm font-medium mb-1">Profile Image URL</label>
+                                    <input type="text" id="profile-image" class="w-full p-2 rounded-lg" placeholder="https://example.com/profile.jpg">
+                                </div>
+                            </form>
+                </div>
+                
+                        <div class="glass-effect rounded-xl p-6">
+                            <h4 class="text-lg font-medium mb-4">Social Links</h4>
+                            <form id="social-form" class="space-y-4">
+                                <div>
+                                    <label for="github-url" class="block text-sm font-medium mb-1">
+                                        <i class="fab fa-github mr-2"></i>GitHub URL
+                                    </label>
+                                    <input type="text" id="github-url" class="w-full p-2 rounded-lg" placeholder="https://github.com/yourusername">
+                    </div>
+                                <div>
+                                    <label for="linkedin-url" class="block text-sm font-medium mb-1">
+                                        <i class="fab fa-linkedin mr-2"></i>LinkedIn URL
+                                    </label>
+                                    <input type="text" id="linkedin-url" class="w-full p-2 rounded-lg" placeholder="https://linkedin.com/in/yourusername">
+                </div>
+                                <div>
+                                    <label for="kaggle-url" class="block text-sm font-medium mb-1">
+                                        <i class="fab fa-kaggle mr-2"></i>Kaggle URL
+                                    </label>
+                                    <input type="text" id="kaggle-url" class="w-full p-2 rounded-lg" placeholder="https://kaggle.com/yourusername">
+                    </div>
+                                <div>
+                                    <label for="medium-url" class="block text-sm font-medium mb-1">
+                                        <i class="fab fa-medium mr-2"></i>Medium URL
+                                    </label>
+                                    <input type="text" id="medium-url" class="w-full p-2 rounded-lg" placeholder="https://medium.com/@yourusername">
+                                </div>
+                            </form>
+                    </div>
+                </div>
+                
+                    <!-- Content Editor Section -->
+                    <div class="glass-effect rounded-xl p-6 mt-6">
+                        <h3 class="text-xl font-bold font-display mb-4">Content Editor</h3>
+                        <p class="text-gray-400 mb-4">Enable edit mode to make changes directly to the front-end content of your portfolio.</p>
+                        <button id="enable-edit-mode" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg text-white font-medium">
+                            <i class="fas fa-edit mr-2"></i>Enable Edit Mode
+                </button>
+                        <p class="text-xs text-gray-400 mt-2">Note: This will allow you to edit text content directly on the main page. Changes will be saved to localStorage.</p>
+        </div>
+    </div>
+            </div>
+        </div>
+    </section>
+
     <footer role="contentinfo" class="text-center py-8">
         <p>&copy; 2025 Bayezid. All rights reserved.</p>
     </footer>
+
+    <!-- Authentication Modal -->
+    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center hidden">
+        <div class="glass-effect rounded-xl w-full max-w-md mx-4 p-6 animate-scale-in">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold font-display">Account Access</h3>
+                <button class="close-modal text-gray-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <!-- Auth Tabs -->
+            <div class="flex border-b border-gray-700 mb-6">
+                <button id="login-tab" class="px-4 py-2 font-medium active-tab">Login</button>
+                <button id="signup-tab" class="px-4 py-2 font-medium text-gray-400">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="space-y-4">
+                <div>
+                    <label for="login-username" class="block text-sm font-medium mb-1">Username or Email</label>
+                    <input type="text" id="login-username" name="username" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                </div>
+                
+                <div class="relative">
+                    <label for="login-password" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="login-password" name="password" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                    <button type="button" class="password-toggle absolute right-3 top-9 text-gray-400 hover:text-white">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-primary-500 rounded bg-white/10 border-white/20">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-400">Remember me</label>
+                    </div>
+                    <button type="button" onclick="window.authManager?.resetUserData()" class="text-sm text-red-500 hover:text-red-400">Reset Credentials</button>
+                </div>
+                
+                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login
+                </button>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signup-form" class="space-y-4 hidden">
+                <div>
+                    <label for="signup-name" class="block text-sm font-medium mb-1">Name</label>
+                    <input type="text" id="signup-name" name="name" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                </div>
+                
+                <div>
+                    <label for="signup-username" class="block text-sm font-medium mb-1">Username</label>
+                    <input type="text" id="signup-username" name="username" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                </div>
+                
+                <div>
+                    <label for="signup-email" class="block text-sm font-medium mb-1">Email</label>
+                    <input type="email" id="signup-email" name="email" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                </div>
+                
+                <div class="relative">
+                    <label for="signup-password" class="block text-sm font-medium mb-1">Password</label>
+                    <input type="password" id="signup-password" name="password" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
+                    <button type="button" class="password-toggle absolute right-3 top-9 text-gray-400 hover:text-white">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+                
+                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
+                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                </button>
+            </form>
+        </div>
+    </div>
 
     <!-- Back to Top Button -->
     <button id="back-to-top" 
@@ -1347,151 +1534,45 @@
     </button>
 
     <!-- Scripts -->
-    <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
+    <script src="js/github-service.js"></script>
+    <script src="js/github-storage.js"></script>
+    <script src="js/main.js"></script>
     <script src="js/contact.js"></script>
     <script src="js/editor.js"></script>
-
-    <!-- Additional scripts for enhanced UI features -->
+    <script src="js/setup-github-backend.js"></script>
+    
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Theme toggling functionality
-            const themeToggleDesktop = document.getElementById('theme-toggle');
-            const themeToggleMobile = document.getElementById('theme-toggle-mobile');
+        // Theme switcher
+        const toggleTheme = () => {
+            const body = document.body;
+            body.classList.toggle('dark');
+            const isDarkMode = body.classList.contains('dark');
+            localStorage.setItem('dark-mode', isDarkMode);
             
-            if (themeToggleDesktop && themeToggleMobile) {
-                [themeToggleDesktop, themeToggleMobile].forEach(toggle => {
-                    toggle.addEventListener('click', function() {
-                        if (document.documentElement.classList.contains('dark')) {
-                            document.documentElement.classList.remove('dark');
-                            localStorage.setItem('theme', 'light');
-            } else {
-                            document.documentElement.classList.add('dark');
-                            localStorage.setItem('theme', 'dark');
-            }
-                    });
-                });
-        }
-
-            // Check for saved theme preference or prefer-color-scheme
-            const savedTheme = localStorage.getItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            
-            if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-                document.documentElement.classList.add('dark');
-            }
-            
-            // Mobile menu toggle
-            const mobileMenuButton = document.getElementById('mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-            
-            if (mobileMenuButton && mobileMenu) {
-                mobileMenuButton.addEventListener('click', function() {
-                    if (mobileMenu.classList.contains('hidden')) {
-                        mobileMenu.classList.remove('hidden');
-                        mobileMenuButton.setAttribute('aria-expanded', 'true');
-            } else {
-                        mobileMenu.classList.add('hidden');
-                        mobileMenuButton.setAttribute('aria-expanded', 'false');
-                    }
-                });
-                
-                // Close mobile menu when clicking a link
-                const mobileLinks = mobileMenu.querySelectorAll('a');
-                mobileLinks.forEach(link => {
-                    link.addEventListener('click', () => {
-                        mobileMenu.classList.add('hidden');
-                        mobileMenuButton.setAttribute('aria-expanded', 'false');
-                    });
-                });
-                    }
-                    
-            // Back to top button
-            const backToTopButton = document.getElementById('back-to-top');
-            
-            if (backToTopButton) {
-                window.addEventListener('scroll', function() {
-                    if (window.pageYOffset > 500) {
-                        backToTopButton.classList.remove('hidden');
-                        backToTopButton.classList.add('animate-fade-in');
+            // Update theme buttons text and icon
+            const themeButtons = document.querySelectorAll('.theme-toggle');
+            themeButtons.forEach(button => {
+                const icon = button.querySelector('i');
+                if (isDarkMode) {
+                    icon.classList.remove('fa-moon');
+                    icon.classList.add('fa-sun');
+                    button.setAttribute('title', 'Switch to light mode');
+                    button.setAttribute('aria-label', 'Switch to light mode');
                 } else {
-                        backToTopButton.classList.add('hidden');
-                        backToTopButton.classList.remove('animate-fade-in');
-                    }
-                });
-                
-                backToTopButton.addEventListener('click', function() {
-                    window.scrollTo({
-                        top: 0,
-                        behavior: 'smooth'
-                    });
-                });
-            }
-            
-            // Active nav link highlighting
-            function setActiveNavLink() {
-                const sections = document.querySelectorAll('section[id]');
-                const navLinks = document.querySelectorAll('.nav-link');
-                
-                let currentSection = '';
-                
-                sections.forEach(section => {
-                    const sectionTop = section.offsetTop - 100;
-                    const sectionHeight = section.offsetHeight;
-                    const sectionId = section.getAttribute('id');
-                    
-                    if (window.scrollY >= sectionTop && window.scrollY < sectionTop + sectionHeight) {
-                        currentSection = sectionId;
-                    }
-                });
-                
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${currentSection}`) {
-                        link.classList.add('active');
-                    }
-                });
-            }
-            
-            window.addEventListener('scroll', setActiveNavLink);
-            setActiveNavLink(); // Initial call
-            
-            // Animated typing effect for intro text
-            const typingText = document.querySelector('.typing-text');
-            if (typingText) {
-                const titles = ['Data Analyst', 'Visualization Specialist', 'Python Enthusiast'];
-                let titleIndex = 0;
-                let charIndex = 0;
-                let isDeleting = false;
-                let typeSpeed = 100;
-                
-                function type() {
-                    const currentTitle = titles[titleIndex];
-                    
-                    if (isDeleting) {
-                        typingText.textContent = currentTitle.substring(0, charIndex - 1);
-                        charIndex--;
-                        typeSpeed = 50;
-                        } else {
-                        typingText.textContent = currentTitle.substring(0, charIndex + 1);
-                        charIndex++;
-                        typeSpeed = 100;
-                    }
-                    
-                    if (!isDeleting && charIndex === currentTitle.length) {
-                        isDeleting = true;
-                        typeSpeed = 1000; // Pause at end
-                    } else if (isDeleting && charIndex === 0) {
-                        isDeleting = false;
-                        titleIndex = (titleIndex + 1) % titles.length;
-                        typeSpeed = 300; // Pause before typing next
-                    }
-                    
-                    setTimeout(type, typeSpeed);
+                    icon.classList.remove('fa-sun');
+                    icon.classList.add('fa-moon');
+                    button.setAttribute('title', 'Switch to dark mode');
+                    button.setAttribute('aria-label', 'Switch to dark mode');
                 }
-                
-                setTimeout(type, 1000); // Start after page load
-            }
+            });
+        };
+
+        // Set dark mode as default
+        document.addEventListener('DOMContentLoaded', function() {
+            // Force dark mode
+            document.body.classList.add('dark');
+            localStorage.setItem('dark-mode', 'true');
         });
     </script>
 </body>

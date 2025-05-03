@@ -1,0 +1,9 @@
+{
+  "theme": "dark",
+  "github_backend_enabled": true,
+  "notifications": {
+    "email_notifications": false,
+    "project_updates": true,
+    "show_email": true
+  }
+} 

@@ -1,0 +1,145 @@
+/**
+ * Main JavaScript file for Bayezid's Portfolio
+ * This file initializes core functionality and all portfolio components
+ */
+
+// Set up API endpoint constants
+window.API_ENDPOINTS = {
+    // Core API endpoints
+    SKILLS: '/api/skills',
+    PROJECTS: '/api/projects',
+    PROFILE: '/api/profile',
+    SOCIAL_LINKS: '/api/social_links',
+    SETTINGS: '/api/settings',
+    
+    // GitHub API endpoints
+    GITHUB_API: 'https://api.github.com',
+    GITHUB_CONTENT: 'https://api.github.com/repos/{owner}/{repo}/contents',
+    GITHUB_GISTS: 'https://api.github.com/gists'
+};
+
+// Function to initialize the GitHub Service
+function initializeGitHubService() {
+    if (!window.githubService) {
+        window.githubService = new GitHubService();
+        console.log('GitHub Service initialized');
+    }
+}
+
+// Function to check if portfolio is deployed on GitHub Pages
+function isGitHubPagesEnvironment() {
+    const hostname = window.location.hostname;
+    return hostname.includes('.github.io') || 
+           hostname === 'github.io' || 
+           hostname === 'github.com' ||
+           hostname === 'localhost' || // For local development testing
+           hostname === '127.0.0.1';   // For local development testing
+}
+
+// Function to set up the GitHub backend
+function setupGitHubBackend() {
+    // Check if we're on GitHub Pages or in a development environment
+    if (isGitHubPagesEnvironment()) {
+        console.log('GitHub Pages environment detected, configuring backend integration');
+        
+        // Disable certain admin features that require write access if not authenticated
+        const token = localStorage.getItem('active_github_token');
+        if (!token) {
+            console.log('No GitHub token found, running in read-only mode');
+            // We'll set up read-only mode later
+        } else {
+            console.log('GitHub token found, attempting to use full access mode');
+            // Initialize github service with the token
+            initializeGitHubService();
+        }
+        
+        // Check for data directory and create if needed
+        checkAndCreateRequiredDirectories();
+    } else {
+        console.log('Not on GitHub Pages, using local storage backend');
+    }
+}
+
+// Function to check for required directories and files
+async function checkAndCreateRequiredDirectories() {
+    if (!window.githubService) {
+        console.log('GitHub service not initialized, skipping directory check');
+        return;
+    }
+    
+    // Check if data directory exists
+    try {
+        console.log('Checking for data directory...');
+        const dataExists = await window.githubService.checkFileExists('data');
+        if (!dataExists) {
+            // In production, we'd want to create directories
+            // but GitHub API doesn't directly support creating directories
+            // we'll need to create a file in the directory to implicitly create it
+            console.log('Data directory not found, creating placeholder file');
+            await window.githubService.createFile('data/README.md', 
+                '# Portfolio Data\n\nThis directory contains data files for the portfolio application.');
+        }
+    } catch (error) {
+        console.error('Error checking/creating data directory:', error);
+    }
+}
+
+// Initialize global API client
+function initializeApiClient() {
+    window.apiClient = {
+        get: async (endpoint) => {
+            try {
+                // If GitHub Service is available and initialized, use it
+                if (window.githubService && window.isGitHubPagesEnvironment()) {
+                    // Convert API endpoint to data path
+                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                    return await window.githubService.getFileContent(dataPath);
+                }
+                
+                // Fallback to localStorage
+                const data = localStorage.getItem(endpoint.replace('/api/', ''));
+                return data ? JSON.parse(data) : null;
+            } catch (error) {
+                console.error(`API GET error (${endpoint}):`, error);
+                return null;
+            }
+        },
+        
+        post: async (endpoint, data) => {
+            try {
+                // If GitHub Service is available and initialized, use it
+                if (window.githubService && window.isGitHubPagesEnvironment()) {
+                    // Convert API endpoint to data path
+                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                    return await window.githubService.updateFile(dataPath, data);
+                }
+                
+                // Fallback to localStorage
+                localStorage.setItem(endpoint.replace('/api/', ''), JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error(`API POST error (${endpoint}):`, error);
+                return false;
+            }
+        }
+    };
+}
+
+// Initialize the portfolio application
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('Initializing portfolio application...');
+    
+    // Set up GitHub backend if needed
+    setupGitHubBackend();
+    
+    // Initialize API client
+    initializeApiClient();
+    
+    // Check if we need to show the GitHub setup UI
+    if (isGitHubPagesEnvironment() && !localStorage.getItem('github_setup_complete')) {
+        // We'll add code to show the setup UI if needed
+        console.log('GitHub setup not complete, should show setup UI');
+    }
+    
+    console.log('Portfolio initialization complete');
+}); 
