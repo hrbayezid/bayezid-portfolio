@@ -5,8 +5,19 @@
  * to be used as a backend for your portfolio.
  */
 
+// Function to check DOM state before performing operations
+function checkDOMState(callback) {
+    if (document.readyState === 'loading') {
+        console.log('🕒 DOM still loading, adding event listener...');
+        document.addEventListener('DOMContentLoaded', callback);
+    } else {
+        console.log('✅ DOM already loaded, executing immediately');
+        callback();
+    }
+}
+
 // Make sure event listener is added after DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+checkDOMState(() => {
     console.log('🔄 GitHub Backend Setup module loaded');
     
     // Make GitHubBackendSetup available globally
@@ -311,12 +322,45 @@ class GitHubBackendSetup {
             const success = await this.githubService.setToken(token);
             if (success) {
                 this.log('GitHub token set successfully', 'success');
+                
+                // Ensure the GitHub Setup tab remains visible
+                this.ensureSetupTabVisibility();
+                
+                // Update status display
                 this.updateStatus();
             } else {
                 this.log('Failed to set GitHub token', 'error');
             }
         } else {
             this.log('GitHub service not available', 'error');
+        }
+    }
+
+    // Ensure GitHub Setup tab remains visible
+    ensureSetupTabVisibility() {
+        // First try using auth manager if available
+        if (window.authManager && typeof window.authManager.ensureGitHubSetupTabVisible === 'function') {
+            console.log('Using auth manager to ensure tab visibility');
+            window.authManager.ensureGitHubSetupTabVisible();
+            return;
+        }
+        
+        // Fallback to manual approach
+        console.log('Manually ensuring GitHub Setup tab visibility');
+        const setupTab = document.querySelector('[data-tab="github-setup"]');
+        const setupContent = document.getElementById('github-setup-tab');
+        
+        if (setupTab && setupContent) {
+            setupTab.style.display = '';
+            setupTab.classList.remove('hidden');
+            
+            if (typeof window.setupDashboardTabs === 'function') {
+                window.setupDashboardTabs();
+            }
+            
+            console.log('✅ GitHub Setup tab visibility enforced after token setup');
+        } else {
+            console.error('❌ GitHub Setup tab not found during visibility enforcement');
         }
     }
 

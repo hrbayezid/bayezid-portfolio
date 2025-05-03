@@ -610,87 +610,62 @@ function initializeApiClient() {
     window.refreshData = window.apiClient.refreshData;
 }
 
-// Handle dashboard tab switching
+// Set up dashboard tabs
 function setupDashboardTabs() {
-    const dashboardTabs = document.querySelectorAll('.dashboard-tab');
-    const contentAreas = document.querySelectorAll('.dashboard-content');
+    const tabButtons = document.querySelectorAll('.dashboard-tab');
+    const tabContents = document.querySelectorAll('.dashboard-content');
     
-    console.log('Found dashboard tabs:', dashboardTabs.length);
-    console.log('Found content areas:', contentAreas.length);
-    
-    // Log all tabs and their data-tab attributes
-    dashboardTabs.forEach(tab => {
-        console.log('Tab:', tab.innerText.trim(), 'data-tab:', tab.getAttribute('data-tab'));
-    });
-    
-    // Log all content areas and their IDs
-    contentAreas.forEach(content => {
-        console.log('Content area:', content.id);
-    });
-    
-    if (dashboardTabs.length === 0 || contentAreas.length === 0) {
-        console.log('Dashboard tabs or content areas not found');
+    if (!tabButtons.length || !tabContents.length) {
+        console.warn('⚠️ Dashboard tabs structure missing');
         return;
     }
     
-    console.log('Setting up dashboard tab switching');
+    console.log(`🔄 Setting up ${tabButtons.length} dashboard tabs`);
     
-    // Add click event listeners to each tab
-    dashboardTabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const targetTabId = tab.getAttribute('data-tab');
-            if (!targetTabId) {
-                console.error('Tab missing data-tab attribute', tab);
-                return;
-            }
-            
-            console.log('Tab clicked:', targetTabId);
-            console.log('Looking for content area with ID:', `${targetTabId}-tab`);
-            
-            // Update active state on tabs
-            dashboardTabs.forEach(t => {
-                t.classList.remove('active');
-            });
-            tab.classList.add('active');
-            
-            // Show the selected content panel and hide others
-            let found = false;
-            contentAreas.forEach(content => {
-                if (content.id === `${targetTabId}-tab`) {
-                    content.classList.remove('hidden');
-                    console.log(`Showing tab content: ${content.id}`);
-                    found = true;
-                } else {
-                    content.classList.add('hidden');
-                    console.log(`Hiding tab content: ${content.id}`);
-                }
-            });
-            
-            if (!found) {
-                console.error(`Content area with ID "${targetTabId}-tab" not found`);
-            }
-            
-            console.log(`Switched to dashboard tab: ${targetTabId}`);
-            });
-        });
-        
-    // Also add event listeners to skill filters, project filters, etc.
-    setupContentFilters();
+    // Make setupDashboardTabs globally available for re-initialization
+    window.setupDashboardTabs = setupDashboardTabs;
     
-    // Manually trigger click on the active tab to ensure correct initial state
-    const activeTab = document.querySelector('.dashboard-tab.active');
-    if (activeTab) {
-        console.log('Triggering click on active tab:', activeTab.getAttribute('data-tab'));
-        activeTab.click();
-    } else if (dashboardTabs.length > 0) {
-        // If no active tab, activate the first one
-        console.log('No active tab found, activating first tab');
-        dashboardTabs[0].click();
+    // Set up GitHub Setup tab (NEVER hide it in the admin dashboard)
+    const githubSetupTab = document.querySelector('[data-tab="github-setup"]');
+    if (githubSetupTab) {
+        console.log('🔄 GitHub setup tab found, ensuring visibility');
+        githubSetupTab.style.display = '';
+        githubSetupTab.classList.remove('hidden');
+    } else {
+        console.warn('⚠️ GitHub setup tab not found in dashboard tabs');
     }
+    
+    // Add click event to tab buttons
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Toggle active class on tab buttons
+            tabButtons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Show corresponding tab content
+            const tabId = btn.getAttribute('data-tab');
+            const content = document.getElementById(`${tabId}-tab`);
+            
+            if (content) {
+                tabContents.forEach(c => c.classList.add('hidden'));
+                content.classList.remove('hidden');
+                
+                // Log tab change
+                console.log(`Tab changed to: ${tabId}`);
+            } else {
+                console.error(`Tab content not found: ${tabId}-tab`);
+            }
+        });
+    });
+    
+    // Set default active tab
+    const defaultTab = tabButtons[0];
+    if (defaultTab) {
+        defaultTab.click();
+    }
+    
+    console.log('✅ Dashboard tabs setup complete');
 }
-
-// Make the dashboard tabs function available globally
-window.setupDashboardTabs = setupDashboardTabs;
 
 // Setup content filters (skills, projects)
 function setupContentFilters() {
@@ -886,23 +861,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Make sure GitHub Setup tab is visible after login
 function ensureGitHubSetupTabIsVisible() {
-    console.log('🔄 Checking GitHub Setup tab visibility...');
+    console.log('🔄 Checking GitHub Setup tab visibility (main.js)...');
     
-    const setupTab = document.querySelector('[data-tab="github-setup"]');
-    const setupContent = document.getElementById('github-setup-tab');
-    
-    if (setupTab && setupContent) {
-        // Make sure the tab is in the DOM and not hidden with display: none
-        setupTab.style.display = '';
-        
-        // Debug log
-        console.log('✅ GitHub Setup tab is available in the DOM');
-        
-        // We won't show it automatically, but make sure it's available
-        // for selection in the dashboard tabs
-    } else {
-        console.error('❌ GitHub Setup tab not found in the DOM');
+    // Wait for the DOM to be fully loaded
+    if (document.readyState !== 'complete') {
+        console.log('🕒 DOM not fully loaded, waiting...');
+        window.addEventListener('load', ensureGitHubSetupTabIsVisible);
+        return;
     }
+    
+    // Small delay to ensure all DOM elements are fully rendered
+    setTimeout(() => {
+        const setupTab = document.querySelector('[data-tab="github-setup"]');
+        const setupContent = document.getElementById('github-setup-tab');
+        
+        if (setupTab && setupContent) {
+            // Check if the dashboard is visible (we're in admin mode)
+            const isDashboardVisible = !document.getElementById('dashboard')?.classList.contains('hidden');
+            
+            if (isDashboardVisible) {
+                console.log('📊 Dashboard is visible, ensuring GitHub Setup tab is also visible');
+                
+                // Make sure the tab is in the DOM and not hidden
+                setupTab.style.display = '';
+                setupTab.classList.remove('hidden');
+                
+                // Debug log
+                console.log('✅ GitHub Setup tab is made visible for admin');
+            } else {
+                console.log('ℹ️ Dashboard is not visible (not in admin mode)');
+            }
+        } else {
+            console.error('❌ GitHub Setup tab not found in the DOM (main.js)');
+            
+            // Debug info
+            console.log('📄 Available tabs:', 
+                Array.from(document.querySelectorAll('.dashboard-tab'))
+                    .map(tab => `${tab.textContent.trim()} (${tab.getAttribute('data-tab')})`));
+        }
+    }, 500);
 }
 
 // Load portfolio data for public pages

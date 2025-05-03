@@ -32,6 +32,8 @@ class AuthManager {
                 this.currentUser = JSON.parse(userData);
                 this.isAuthenticated = true;
                 console.log('User already authenticated:', this.currentUser.username);
+                
+                // Update UI for authenticated user (which will also ensure GitHub tab visibility)
                 this.updateUIForAuthenticatedUser();
                 
                 // Make sure GitHub token is loaded if we're already authenticated
@@ -40,7 +42,12 @@ class AuthManager {
                     if (token) {
                         console.log('Reloading existing GitHub token');
                         window.githubService.loadToken();
+                    } else {
+                        console.log('⚠️ No GitHub token available for authenticated user');
                     }
+                    
+                    // Explicitly ensure GitHub Setup tab is visible (belt and suspenders approach)
+                    setTimeout(() => this.ensureGitHubSetupTabVisible(), 300);
                 }
             } catch (error) {
                 console.error('Error parsing user data:', error);
@@ -133,6 +140,8 @@ class AuthManager {
         const isValid = this.validateCredentials(usernameOrEmail, password);
         
         if (isValid) {
+            console.log('🔐 Login successful, updating authentication state');
+            
             // Set authentication state
             this.isAuthenticated = true;
             this.currentUser = {
@@ -159,10 +168,16 @@ class AuthManager {
             if (window.githubService) {
                 const token = localStorage.getItem('active_github_token');
                 if (token) {
+                    console.log('✅ Existing GitHub token found, loading it into service');
                     window.githubService.loadToken();
                     window.githubService.initialLoadData();
+                } else {
+                    console.log('⚠️ No GitHub token available, but tab should still be shown');
                 }
             }
+            
+            // Force GitHub Setup tab to be visible regardless of token state
+            this.ensureGitHubSetupTabVisible();
             
             // Redirect to dashboard
             window.location.hash = '#dashboard';
@@ -213,6 +228,8 @@ class AuthManager {
      * Update the UI for an authenticated user
      */
     updateUIForAuthenticatedUser() {
+        console.log('🔄 Updating UI for authenticated user');
+        
         // Show dashboard container
         const dashboardContainer = document.getElementById('dashboard-container');
         if (dashboardContainer) {
@@ -254,20 +271,8 @@ class AuthManager {
             userInfo.querySelector('span').textContent = `Logged in as ${this.currentUser.username}`;
         }
         
-        // Ensure GitHub Setup tab is visible in admin dashboard
-        const setupTab = document.querySelector('[data-tab="github-setup"]');
-        if (setupTab) {
-            console.log('📋 Ensuring GitHub Setup tab is visible after login');
-            setupTab.style.display = '';
-            
-            // Re-initialize dashboard tabs to ensure proper rendering
-            if (typeof window.setupDashboardTabs === 'function') {
-                window.setupDashboardTabs();
-                console.log('🔄 Re-initialized dashboard tabs after login');
-            }
-        } else {
-            console.warn('⚠️ GitHub Setup tab not found in the DOM after login');
-        }
+        // Ensure GitHub Setup tab is visible using the dedicated method
+        this.ensureGitHubSetupTabVisible();
         
         // Check GitHub token status and show appropriate message
         this.checkGitHubTokenStatus();
@@ -409,6 +414,55 @@ class AuthManager {
             notification.classList.add('opacity-0');
             setTimeout(() => notification.remove(), 300);
         }, 3000);
+    }
+    
+    /**
+     * Ensure GitHub Setup tab is visible regardless of token state
+     * This is called both after login and when initializing the auth state
+     */
+    ensureGitHubSetupTabVisible() {
+        console.log('📋 Explicitly ensuring GitHub Setup tab visibility');
+        
+        // Find the GitHub Setup tab and content
+        const setupTab = document.querySelector('[data-tab="github-setup"]');
+        const setupContent = document.getElementById('github-setup-tab');
+        
+        if (setupTab && setupContent) {
+            // Make sure the tab button is visible and not hidden
+            setupTab.style.display = '';
+            setupTab.classList.remove('hidden');
+            
+            console.log('✅ GitHub Setup tab made visible in the DOM');
+            
+            // Re-initialize dashboard tabs to ensure proper rendering
+            if (typeof window.setupDashboardTabs === 'function') {
+                console.log('🔄 Re-initializing dashboard tabs to include GitHub Setup tab');
+                window.setupDashboardTabs();
+            } else {
+                console.warn('⚠️ setupDashboardTabs function not available yet');
+                // Try again with a delay if the function isn't available yet
+                setTimeout(() => {
+                    if (typeof window.setupDashboardTabs === 'function') {
+                        window.setupDashboardTabs();
+                        console.log('✅ Dashboard tabs re-initialized after delay');
+                    }
+                }, 500);
+            }
+            
+            // Log for debugging
+            console.log('GitHub Setup Tab:', setupTab);
+            console.log('GitHub Setup Content:', setupContent);
+        } else {
+            console.error('❌ GitHub Setup tab or content not found in the DOM');
+            // Log the available tabs and content areas for debugging
+            console.log('Available tabs:', 
+                Array.from(document.querySelectorAll('.dashboard-tab'))
+                    .map(tab => `${tab.textContent.trim()} (${tab.getAttribute('data-tab')})`));
+            
+            console.log('Available content areas:', 
+                Array.from(document.querySelectorAll('.dashboard-content'))
+                    .map(content => content.id));
+        }
     }
 }
 
