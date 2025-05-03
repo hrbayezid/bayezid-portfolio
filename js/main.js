@@ -161,19 +161,80 @@ function getDefaultSettings() {
 function initializeApiClient() {
     window.apiClient = {
         lastFetchTime: {},
-        cacheTTL: 30000, // 30 seconds before refetching data
+        cache: {}, // Add an in-memory cache for fetched data
+        cacheTTL: 300000, // Increase to 5 minutes (300000ms) to reduce GitHub API calls
         maxRetries: 2,   // Maximum number of retry attempts
         
         get: async (endpoint) => {
             try {
-                // Record fetch start time for diagnostics
-                const startTime = Date.now();
-                const cacheBuster = `?t=${startTime}`;
+                // Check in-memory cache first
+                const now = Date.now();
+                const cacheKey = endpoint;
+                const cachedData = window.apiClient.cache[cacheKey];
+                const lastFetch = window.apiClient.lastFetchTime[endpoint] || 0;
                 
-                // If GitHub Service is available, use it
+                // Use cached data if available and not expired
+                if (cachedData && (now - lastFetch) < window.apiClient.cacheTTL) {
+                    console.log(`📋 Using cached data for ${endpoint} (age: ${(now - lastFetch)/1000}s)`);
+                    return cachedData;
+                }
+                
+                // Add timestamp for cache busting (prevent GitHub Pages caching)
+                const cacheBuster = `?v=${now}`;
+                
+                // For public visitors, prioritize direct raw GitHub URL fetch which works without authentication
+                if (!document.querySelector('#dashboard')) {
+                    // Convert API endpoint to data path for GitHub raw URL
+                    const owner = 'hrbayezid';
+                    const repo = 'bayezid-portfolio';
+                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
+                    
+                    console.log(`🔄 Public fetch: ${rawUrl}`);
+                    
+                    try {
+                        const response = await fetch(rawUrl);
+                        
+                        if (!response.ok) {
+                            if (response.status === 404) {
+                                console.warn(`⚠️ File ${dataPath} not found in GitHub repository`);
+                                // Return appropriate empty data structure
+                                const emptyData = endpoint.includes('skills') ? [] : 
+                                                endpoint.includes('projects') ? [] : {};
+                                return emptyData;
+                            }
+                            
+                            throw new Error(`GitHub fetch failed: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        const jsonData = await response.json();
+                        console.log(`💾 Data loaded from direct GitHub URL: ${dataPath}`);
+                        
+                        // Cache the data
+                        window.apiClient.cache[cacheKey] = jsonData;
+                        window.apiClient.lastFetchTime[endpoint] = now;
+                        
+                        return jsonData;
+                    } catch (error) {
+                        console.error(`❌ Error fetching ${endpoint} from GitHub:`, error.message);
+                        
+                        // Return appropriate empty data structure without showing errors to public visitors
+                        if (endpoint.includes('skills')) {
+                            return [];
+                        } else if (endpoint.includes('projects')) {
+                            return [];
+                        } else if (endpoint.includes('profile')) {
+                            return {};
+                        } else {
+                            return null;
+                        }
+                    }
+                }
+                
+                // If we reach here, we're in dashboard (admin) mode with GitHub service
                 if (window.githubService) {
                     // Log the attempt
-                    console.log(`🔄 API GET ${endpoint} (via GitHub)`);
+                    console.log(`🔄 Admin API GET ${endpoint} (via GitHub service)`);
                     if (window.syncStatus) {
                         window.syncStatus.showStatus(`Fetching ${endpoint}...`, 'info', 2000);
                     }
@@ -183,8 +244,9 @@ function initializeApiClient() {
                         const dataPath = `data${endpoint.replace('/api', '')}.json`;
                         const data = await window.githubService.getFileContent(dataPath);
                         
-                        // Record successful fetch time
-                        window.apiClient.lastFetchTime[endpoint] = Date.now();
+                        // Cache successful results
+                        window.apiClient.cache[cacheKey] = data;
+                        window.apiClient.lastFetchTime[endpoint] = now;
                         
                         // Check which source was used
                         const source = window.githubService.getDataSource();
@@ -195,14 +257,14 @@ function initializeApiClient() {
                             }
                         }
                         
-                        console.log(`✅ API GET ${endpoint} complete in ${Date.now() - startTime}ms`);
+                        console.log(`✅ API GET ${endpoint} complete in ${Date.now() - now}ms`);
                         return data;
                     } catch (githubError) {
-                        console.error(`❌ GitHub fetch failed for ${endpoint}:`, githubError.message);
+                        console.error(`❌ GitHub service fetch failed for ${endpoint}:`, githubError.message);
                         
-                        // Fall back to direct raw GitHub URL as a last resort
+                        // Fall back to direct raw GitHub URL for admin mode
                         try {
-                            console.log(`🔄 Falling back to direct raw GitHub URL for ${endpoint}`);
+                            console.log(`🔄 Falling back to direct GitHub URL for ${endpoint}`);
                             const owner = 'hrbayezid';
                             const repo = 'bayezid-portfolio';
                             const dataPath = `data${endpoint.replace('/api', '')}.json`;
@@ -216,30 +278,32 @@ function initializeApiClient() {
                             const jsonData = await rawResponse.json();
                             console.log(`💾 Data loaded from direct GitHub URL`);
                             
-                            // Record successful fetch time
-                            window.apiClient.lastFetchTime[endpoint] = Date.now();
+                            // Cache successful results
+                            window.apiClient.cache[cacheKey] = jsonData;
+                            window.apiClient.lastFetchTime[endpoint] = now;
                             
                             return jsonData;
                         } catch (rawError) {
                             console.error(`❌ Direct GitHub fetch also failed:`, rawError.message);
                             
-                            // Only show errors in dashboard
-                            if (document.querySelector('#dashboard')) {
-                                if (window.syncStatus) {
-                                    window.syncStatus.fetchFailed(endpoint, rawError);
-                                    window.syncStatus.showStatus(`Error fetching ${endpoint}: ${rawError.message}`, 'error', 10000);
-                                }
+                            // Show errors only in dashboard
+                            if (window.syncStatus) {
+                                window.syncStatus.fetchFailed(endpoint, rawError);
+                                window.syncStatus.showStatus(`Error fetching ${endpoint}: ${rawError.message}`, 'error', 10000);
+                            }
+                            
+                            // Check if we have stale cache data we can use
+                            if (cachedData) {
+                                console.warn(`⚠️ Using stale cached data for ${endpoint} as fallback`);
+                                return cachedData;
                             }
                             
                             // Return empty data structure based on endpoint
                             if (endpoint.includes('skills')) {
-                                console.warn('📊 Returning empty skills array due to fetch failure');
                                 return [];
                             } else if (endpoint.includes('projects')) {
-                                console.warn('📋 Returning empty projects array due to fetch failure');
                                 return [];
                             } else if (endpoint.includes('profile')) {
-                                console.warn('👤 Returning empty profile object due to fetch failure');
                                 return {};
                             } else {
                                 return null;
@@ -247,34 +311,41 @@ function initializeApiClient() {
                         }
                     }
                 } else {
-                    // GitHub service not initialized, try direct GitHub fetch
+                    // GitHub service not available, try direct GitHub fetch
+                    console.log(`🔄 GitHub service not available, using direct GitHub fetch for ${endpoint}`);
+                    const owner = 'hrbayezid';
+                    const repo = 'bayezid-portfolio';
+                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
+                    
                     try {
-                        console.log(`🔄 GitHub service not available, trying direct GitHub fetch for ${endpoint}`);
-                        const owner = 'hrbayezid';
-                        const repo = 'bayezid-portfolio';
-                        const dataPath = `data${endpoint.replace('/api', '')}.json`;
-                        const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
-                        
-                        const rawResponse = await fetch(rawUrl);
-                        if (!rawResponse.ok) {
-                            throw new Error(`Raw GitHub fetch failed: ${rawResponse.status} ${rawResponse.statusText}`);
+                        const response = await fetch(rawUrl);
+                        if (!response.ok) {
+                            throw new Error(`Raw GitHub fetch failed: ${response.status} ${response.statusText}`);
                         }
                         
-                        const jsonData = await rawResponse.json();
+                        const jsonData = await response.json();
                         console.log(`💾 Data loaded from direct GitHub URL`);
                         
-                        // Record successful fetch time
-                        window.apiClient.lastFetchTime[endpoint] = Date.now();
+                        // Cache successful results
+                        window.apiClient.cache[cacheKey] = jsonData;
+                        window.apiClient.lastFetchTime[endpoint] = now;
                         
                         return jsonData;
                     } catch (directError) {
                         console.error(`❌ Direct GitHub fetch failed:`, directError.message);
                         
-                        // Only show errors in dashboard
+                        // Show errors only in dashboard
                         if (document.querySelector('#dashboard')) {
                             if (window.syncStatus) {
                                 window.syncStatus.showStatus(`Error fetching ${endpoint}: ${directError.message}`, 'error', 10000);
                             }
+                        }
+                        
+                        // Check if we have stale cache data we can use
+                        if (cachedData) {
+                            console.warn(`⚠️ Using stale cached data for ${endpoint} as fallback`);
+                            return cachedData;
                         }
                         
                         // Return empty data structure based on endpoint
@@ -292,7 +363,7 @@ function initializeApiClient() {
             } catch (error) {
                 console.error(`❌ API GET error (${endpoint}):`, error.message);
                 
-                // Only show errors in dashboard
+                // Show errors only in dashboard
                 if (document.querySelector('#dashboard')) {
                     if (window.syncStatus) {
                         window.syncStatus.showStatus(`Error fetching ${endpoint}: ${error.message}`, 'error', 10000);
@@ -309,6 +380,19 @@ function initializeApiClient() {
                 } else {
                     return null;
                 }
+            }
+        },
+        
+        // Method to explicitly clear cache for an endpoint or all endpoints
+        clearCache: (endpoint = null) => {
+            if (endpoint) {
+                delete window.apiClient.cache[endpoint];
+                delete window.apiClient.lastFetchTime[endpoint];
+                console.log(`🧹 Cache cleared for ${endpoint}`);
+            } else {
+                window.apiClient.cache = {};
+                window.apiClient.lastFetchTime = {};
+                console.log(`🧹 All cache cleared`);
             }
         },
         
@@ -376,14 +460,14 @@ function initializeApiClient() {
                         
                         return false;
                     }
-                } else {
+        } else {
                     // GitHub service not available, show error
                     const errorMsg = 'GitHub service not initialized. Cannot save data.';
                     console.error(errorMsg);
                     
                     if (window.syncStatus) {
                         window.syncStatus.showStatus(errorMsg, 'error', 10000);
-                    } else {
+        } else {
                         alert(errorMsg);
                     }
                     
@@ -430,8 +514,8 @@ function initializeApiClient() {
                             // Force refresh cached data for this endpoint
                             window.apiClient.lastFetchTime[endpoint] = 0;
                             
-                            return true;
-                        } else {
+        return true;
+                } else {
                             throw new Error('GitHub delete failed');
                         }
                     } catch (githubError) {
@@ -439,12 +523,12 @@ function initializeApiClient() {
                         
                         if (window.syncStatus) {
                             window.syncStatus.showStatus(`GitHub delete failed: ${githubError.message}`, 'error', 10000);
-                        } else {
+                    } else {
                             alert(`GitHub Error: Failed to delete from ${endpoint}\n${githubError.message}`);
                         }
                         
-                        return false;
-                    }
+            return false;
+        }
         } else {
                     // GitHub service not available, show error
                     const errorMsg = 'GitHub service not initialized. Cannot delete data.';
@@ -452,12 +536,12 @@ function initializeApiClient() {
                     
                     if (window.syncStatus) {
                         window.syncStatus.showStatus(errorMsg, 'error', 10000);
-        } else {
+                    } else {
                         alert(errorMsg);
                     }
                     
-                    return false;
-                }
+            return false;
+        }
             } catch (error) {
                 console.error(`API DELETE error (${endpoint}):`, error);
                 
@@ -467,8 +551,8 @@ function initializeApiClient() {
                     alert(`Error deleting data: ${error.message}`);
                 }
                 
-                return false;
-            }
+            return false;
+        }
         },
         
         refreshData: async (endpoint) => {
@@ -503,7 +587,7 @@ function initializeApiClient() {
                 }
                 
                 return freshData;
-            } catch (error) {
+        } catch (error) {
                 console.error(`Error refreshing ${endpoint} data:`, error);
                 
                 if (window.syncStatus) {
@@ -569,7 +653,7 @@ function setupDashboardTabs() {
                     content.classList.remove('hidden');
                     console.log(`Showing tab content: ${content.id}`);
                     found = true;
-                    } else {
+                } else {
                     content.classList.add('hidden');
                     console.log(`Hiding tab content: ${content.id}`);
                 }
@@ -785,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Add alert if syncStatus is not available
                 if (window.syncStatus) {
                     window.syncStatus.showStatus('GitHub service not available', 'error');
-                } else {
+        } else {
                     alert('GitHub service not available. Please configure GitHub in dashboard.');
                 }
             }
@@ -798,6 +882,20 @@ document.addEventListener('DOMContentLoaded', () => {
 // Load portfolio data for public pages
 async function loadPublicPortfolioData() {
     console.log('🔄 Loading public portfolio data directly from GitHub...');
+    
+    // Add loading indicators to sections
+    const sections = {
+        'skills-grid': 'Loading skills...',
+        'projects-grid': 'Loading projects...',
+    };
+    
+    // Show loading indicators
+    Object.keys(sections).forEach(id => {
+        const container = document.getElementById(id);
+        if (container) {
+            showLoadingIndicator(container, sections[id]);
+        }
+    });
     
     try {
         // Load skills data
@@ -813,7 +911,7 @@ async function loadPublicPortfolioData() {
                     // Show empty state
                     const skillsGrid = document.getElementById('skills-grid');
                     if (skillsGrid) {
-                        skillsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No skills data found.</div>';
+                        showEmptyState(skillsGrid, 'No skills data found. Check back later!');
                     }
                 }
             } catch (skillsError) {
@@ -821,7 +919,7 @@ async function loadPublicPortfolioData() {
                 // Show error state
                 const skillsGrid = document.getElementById('skills-grid');
                 if (skillsGrid) {
-                    skillsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">Could not load skills data. Please try again later.</div>';
+                    showErrorState(skillsGrid, 'Could not load skills data. Please try again later.');
                 }
             }
         }
@@ -844,7 +942,7 @@ async function loadPublicPortfolioData() {
                         if (noProjectsMessage) {
                             noProjectsMessage.classList.remove('hidden');
                         } else {
-                            projectsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No projects data found.</div>';
+                            showEmptyState(projectsGrid, 'No projects data found. Check back later!');
                         }
                     }
                 }
@@ -853,7 +951,7 @@ async function loadPublicPortfolioData() {
                 // Show error state
                 const projectsGrid = document.getElementById('projects-grid');
                 if (projectsGrid) {
-                    projectsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">Could not load projects data. Please try again later.</div>';
+                    showErrorState(projectsGrid, 'Could not load projects data. Please try again later.');
                 }
             }
         }
@@ -876,6 +974,82 @@ async function loadPublicPortfolioData() {
         console.log('✅ Public portfolio data loading complete');
     } catch (error) {
         console.error('❌ Error loading public portfolio data:', error);
+    }
+}
+
+/**
+ * Utility function to show a loading indicator in a container
+ * @param {HTMLElement} container - The container element
+ * @param {string} message - The loading message to display
+ */
+function showLoadingIndicator(container, message = 'Loading...') {
+    if (!container) return;
+    
+    // Create a loading indicator
+    const loadingHTML = `
+        <div class="col-span-full text-center py-8 animate-pulse">
+            <div class="inline-block rounded-full h-8 w-8 bg-primary-500/50 animate-pulse mb-2"></div>
+            <p class="text-gray-400">${message}</p>
+        </div>
+    `;
+    
+    // Set the loading indicator
+    container.innerHTML = loadingHTML;
+}
+
+/**
+ * Utility function to show an empty state in a container
+ * @param {HTMLElement} container - The container element
+ * @param {string} message - The empty state message to display
+ */
+function showEmptyState(container, message = 'No data found.') {
+    if (!container) return;
+    
+    // Create an empty state
+    const emptyHTML = `
+        <div class="col-span-full text-center py-8">
+            <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+            <p class="text-gray-400">${message}</p>
+        </div>
+    `;
+    
+    // Set the empty state
+    container.innerHTML = emptyHTML;
+}
+
+/**
+ * Utility function to show an error state in a container
+ * @param {HTMLElement} container - The container element
+ * @param {string} message - The error message to display
+ */
+function showErrorState(container, message = 'An error occurred. Please try again later.') {
+    if (!container) return;
+    
+    // Create an error state
+    const errorHTML = `
+        <div class="col-span-full text-center py-8">
+            <i class="fas fa-exclamation-triangle text-3xl text-amber-500/70 mb-2"></i>
+            <p class="text-gray-400">${message}</p>
+            <button class="mt-4 px-4 py-2 bg-primary-500/80 text-white rounded-lg hover:bg-primary-600/80 text-sm transition-colors refresh-data-btn">
+                <i class="fas fa-sync-alt mr-1"></i>Try Again
+            </button>
+        </div>
+    `;
+    
+    // Set the error state
+    container.innerHTML = errorHTML;
+    
+    // Add event listener to the refresh button
+    const refreshBtn = container.querySelector('.refresh-data-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            // Show loading indicator again
+            showLoadingIndicator(container, 'Refreshing...');
+            
+            // Force a reload of data
+            window.apiClient.clearCache();
+            loadPublicPortfolioData();
+        });
     }
 }
 
@@ -940,7 +1114,7 @@ function addNewSkill() {
         
         // Handle form submission
     document.getElementById('add-skill-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+                e.preventDefault();
             
         const skillName = document.getElementById('skill-name').value;
         const skillCategory = document.getElementById('skill-category').value;
@@ -963,7 +1137,7 @@ function addNewSkill() {
             if (existingSkills && Array.isArray(existingSkills)) {
                 skills = existingSkills;
             }
-            } else {
+                } else {
             const storedSkills = localStorage.getItem('skills');
             if (storedSkills) {
                 skills = JSON.parse(storedSkills);

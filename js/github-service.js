@@ -29,17 +29,31 @@ class GitHubService {
         try {
             console.log('🔄 Loading portfolio data from GitHub...');
             
-            // Always load public data from GitHub regardless of token status
+            // For public visitors (non-dashboard), don't even attempt token validation
+            const isAdminDashboard = document.querySelector('#dashboard');
+            
+            if (!isAdminDashboard) {
+                console.log('📄 Public visitor detected, loading data without authentication');
+                await Promise.all([
+                    this.refreshSkillsDisplay(),
+                    this.refreshProjectsDisplay(),
+                    this.loadProfileData()
+                ]);
+                console.log('✅ Public data loaded successfully');
+                return; // Exit early for public visitors
+            }
+            
+            // Admin dashboard mode - load data first
             await Promise.all([
                 this.refreshSkillsDisplay(),
                 this.refreshProjectsDisplay(),
                 this.loadProfileData()
             ]);
             
-            console.log('✅ Initial public data loaded successfully');
+            console.log('✅ Initial data loaded successfully');
             
-            // Only validate token if in dashboard (admin) mode
-            if (document.querySelector('#dashboard') && this.token) {
+            // Only then validate token if in dashboard (admin) mode
+            if (this.token) {
                 console.log('Admin dashboard detected, validating token...');
                 const tokenStatus = await this.validateToken();
                 
@@ -54,19 +68,24 @@ class GitHubService {
                         this.syncStatus.showStatus('GitHub token not valid. Using read-only mode.', 'warning');
                     }
                 }
-            } else if (document.querySelector('#dashboard') && !this.token) {
+            } else {
                 console.warn('⚠️ No token provided for dashboard. Write operations will be unavailable.');
                 if (this.syncStatus) {
                     this.syncStatus.showStatus('No GitHub token. Running in read-only mode.', 'warning');
                 }
-            } else {
-                console.log('ℹ️ Public read-only mode: no token required');
             }
         } catch (error) {
             console.error('❌ Error during initial data load:', error);
-            if (this.syncStatus) {
-                this.syncStatus.showStatus('Error loading initial data: ' + error.message, 'error');
+            
+            // Only show error in dashboard
+            if (document.querySelector('#dashboard')) {
+                if (this.syncStatus) {
+                    this.syncStatus.showStatus('Error loading initial data: ' + error.message, 'error');
+                }
             }
+            
+            // For public visitors, just log the error but don't show any UI errors
+            console.warn('Continuing with potentially incomplete data');
         }
     }
 
@@ -74,8 +93,8 @@ class GitHubService {
         // Only load token for admin dashboard
         if (document.querySelector('#dashboard')) {
             // Load token from local storage
-            this.token = localStorage.getItem('active_github_token');
-            if (!this.token) {
+        this.token = localStorage.getItem('active_github_token');
+        if (!this.token) {
                 console.log('No active GitHub token found - admin features will be limited');
             } else {
                 console.log('GitHub token found for admin operations');
@@ -105,7 +124,7 @@ class GitHubService {
             if (validation.valid) {
                 // Immediately load data after token validation
                 await this.initialLoadData();
-                return true;
+            return true;
             } else {
                 return false;
             }
@@ -233,14 +252,14 @@ class GitHubService {
         // Reset current data source
         this.currentDataSource = null;
         
-        // Add timestamp for cache busting
-        const cacheBuster = `?t=${Date.now()}`;
+        // Add timestamp for cache busting - use version parameter instead of 't' to avoid GitHub caching
+        const cacheBuster = `?v=${Date.now()}`;
         
         try {
             console.log(`🔄 Fetching ${path} from GitHub...`);
             if (this.syncStatus) this.syncStatus.fetchingFromGitHub(path);
             
-            // Always prioritize raw GitHub content which works without authentication
+            // For all requests, prioritize raw GitHub content which works without authentication
             const rawUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${path}${cacheBuster}`;
             console.log(`📄 Accessing public URL: ${rawUrl}`);
             
@@ -250,6 +269,36 @@ class GitHubService {
                 if (response.status === 404) {
                     console.warn(`⚠️ File ${path} not found in GitHub repository`);
                     throw new Error(`File ${path} not found in GitHub repository`);
+                }
+                
+                if (response.status === 403) {
+                    console.warn(`⚠️ Rate limit exceeded when fetching ${path}`);
+                    // When rate limit is hit, try with a delay and different query param
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Retry with a slightly different cache buster
+                    const retryUrl = `https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${path}?version=${Date.now()}`;
+                    console.log(`📄 Retrying with different cache buster: ${retryUrl}`);
+                    
+                    const retryResponse = await fetch(retryUrl);
+                    if (!retryResponse.ok) {
+                        throw new Error(`GitHub raw content fetch failed: ${retryResponse.status} ${retryResponse.statusText}`);
+                    }
+                    
+                    const text = await retryResponse.text();
+                    let content;
+                    
+                    try {
+                        content = JSON.parse(text);
+                    } catch (e) {
+                        // Not a JSON file
+                        content = text;
+                    }
+                    
+                    this.currentDataSource = 'github-raw-retry';
+                    console.log(`💾 Data loaded from GitHub (retry): ${path}`);
+                    if (this.syncStatus) this.syncStatus.fetchSuccess(path);
+                    return content;
                 }
                 
                 if (!response.ok) {
@@ -273,37 +322,65 @@ class GitHubService {
             } catch (error) {
                 console.error(`❌ Error fetching ${path} from GitHub: ${error.message}`);
                 
-                if (this.syncStatus) this.syncStatus.fetchFailed(path, error);
-                
-                // Only show errors for admins in dashboard
-                if (document.querySelector('#dashboard')) {
-                    if (this.syncStatus) {
-                        this.syncStatus.showStatus(`GitHub Error: ${error.message}`, 'error', 10000);
+                // Only try authenticated API if we're in admin mode with a token
+                if (document.querySelector('#dashboard') && this.token) {
+                    try {
+                        console.log(`🔒 Falling back to authenticated GitHub API for ${path}`);
+                        
+                        // Try the authenticated GitHub API
+                        const apiUrl = `${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`;
+                        const headers = {
+                            'Authorization': `Bearer ${this.token}`,
+                            'Accept': 'application/vnd.github.v3+json'
+                        };
+                        
+                        const response = await fetch(apiUrl, { headers });
+                        
+                        if (!response.ok) {
+                            throw new Error(`GitHub API fetch failed: ${response.status} ${response.statusText}`);
+                        }
+                        
+                        const data = await response.json();
+                        const content = atob(data.content);
+                        
+                        let parsedContent;
+                        try {
+                            parsedContent = JSON.parse(content);
+                        } catch (e) {
+                            // Not a JSON file
+                            parsedContent = content;
+                        }
+                        
+                        this.currentDataSource = 'github-api';
+                        console.log(`💾 Data loaded from GitHub API: ${path}`);
+                        if (this.syncStatus) this.syncStatus.fetchSuccess(path);
+                        return parsedContent;
+                    } catch (apiError) {
+                        console.error(`❌ GitHub API fetch also failed: ${apiError.message}`);
+                        
+                        if (this.syncStatus) {
+                            this.syncStatus.fetchFailed(path, apiError);
+                            if (document.querySelector('#dashboard')) {
+                                this.syncStatus.showStatus(`GitHub Error: ${apiError.message}`, 'error', 10000);
+                            }
+                        }
+                        
+                        throw apiError; // Re-throw to be handled by the caller
                     }
-                }
-                
-                // Return empty data structure based on path
-                if (path.includes('skills.json')) {
-                    console.log('📊 Returning empty skills array due to fetch failure');
-                    return [];
-                } else if (path.includes('projects.json')) {
-                    console.log('📋 Returning empty projects array due to fetch failure');
-                    return [];
-                } else if (path.includes('profile.json')) {
-                    console.log('👤 Returning empty profile object due to fetch failure');
-                    return {};
                 } else {
-                    throw error; // Allow the caller to handle other errors
+                    // Public visitor or admin without token - just propagate the error
+                    if (this.syncStatus) this.syncStatus.fetchFailed(path, error);
+                    
+                    throw error; // Re-throw to be handled by the caller
                 }
             }
         } catch (error) {
             console.error(`❌ Error fetching ${path}:`, error.message);
             
-            if (this.syncStatus) this.syncStatus.fetchFailed(path, error);
-            
-            // Only show errors for admins in dashboard
+            // Only show errors in dashboard
             if (document.querySelector('#dashboard')) {
                 if (this.syncStatus) {
+                    this.syncStatus.fetchFailed(path, error);
                     this.syncStatus.showStatus(`GitHub Error: ${error.message}`, 'error', 10000);
                 }
             }
@@ -469,113 +546,102 @@ class GitHubService {
     }
     
     async refreshProjectsDisplay() {
-        // Refresh projects display on the main page if applicable
-        if (this.syncStatus) {
-            this.syncStatus.showStatus('Refreshing projects display...', 'info', 2000);
-        }
-        
         try {
-            // Try to find any loaded projects UI and update it
-            const projectsGrid = document.getElementById('projects-grid');
-            if (projectsGrid) {
-                const freshProjects = await this.getAllProjectsData();
+            console.log('🔄 Refreshing projects display...');
+            
+            // First, try to get projects data from GitHub
+            const projectsPath = 'data/projects.json';
+            let projects = [];
+            
+            try {
+                console.log(`📄 Fetching projects from ${projectsPath}`);
+                projects = await this.getFileContent(projectsPath);
                 
-                // If there's a function to update the UI, call it
-                if (typeof updateProjectsUI === 'function') {
-                    updateProjectsUI(freshProjects);
-                } else {
-                    // Manually update the projects UI since the function might not be available
-                    this.updateProjectsUI(freshProjects);
-                    
-                    // Show a refresh notification
-                    if (this.syncStatus) {
-                        this.syncStatus.showStatus(
-                            'Projects updated manually.',
-                            'success',
-                            5000
-                        );
-                    }
+                if (!Array.isArray(projects)) {
+                    console.warn('Projects data is not an array, using empty array instead');
+                    projects = [];
+                }
+                
+                console.log(`✅ Loaded ${projects.length} projects successfully`);
+            } catch (error) {
+                console.error(`❌ Error loading projects:`, error);
+                // Return empty array for projects but don't show errors to public visitors
+                projects = []; 
+                
+                // Only show errors in dashboard
+                if (document.querySelector('#dashboard') && this.syncStatus) {
+                    this.syncStatus.showStatus(`Error loading projects: ${error.message}`, 'error', 5000);
                 }
             }
+            
+            // Update the projects UI
+            this.updateProjectsUI(projects);
+            
+            // If in dashboard, also update the projects table
+            if (typeof updateProjectsTable === 'function' && document.querySelector('#dashboard')) {
+                updateProjectsTable(projects);
+            }
+            
+            return projects;
         } catch (error) {
             console.error('Error refreshing projects display:', error);
+            
+            // Only show errors in dashboard
+            if (document.querySelector('#dashboard') && this.syncStatus) {
+                this.syncStatus.showStatus(`Error refreshing projects: ${error.message}`, 'error', 5000);
+            }
+            
+            return [];
         }
     }
     
     async refreshSkillsDisplay() {
-        // Refresh skills display on the main page if applicable
-        if (this.syncStatus) {
-            this.syncStatus.showStatus('Refreshing skills display...', 'info', 2000);
-        }
-        
         try {
-            // Try to find any loaded skills UI and update it
-            const skillsSection = document.getElementById('skills-section');
+            console.log('🔄 Refreshing skills display...');
             
-            if (skillsSection) {
-                console.log('Found skills section, loading data...');
-                const freshSkills = await this.getAllSkillsData();
-                console.log('Skills data loaded:', freshSkills);
+            // First, try to get skills data from GitHub
+            const skillsPath = 'data/skills.json';
+            let skills = [];
+            
+            try {
+                console.log(`📄 Fetching skills from ${skillsPath}`);
+                skills = await this.getFileContent(skillsPath);
                 
-                // Check for specific skill containers
-                const skillsContainer = skillsSection.querySelector('.skills-container') || 
-                                       skillsSection.querySelector('#skills-grid') ||
-                                       document.getElementById('skills-grid');
-                                       
-                if (skillsContainer) {
-                    console.log('Found skills container:', skillsContainer);
-                    // Clear existing skills
-                    skillsContainer.innerHTML = '';
-                    
-                    if (!freshSkills || freshSkills.length === 0) {
-                        skillsContainer.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No skills added yet.</div>';
-                        return;
-                    }
-                    
-                    // Add each skill
-                    freshSkills.forEach(skill => {
-                        const skillCard = document.createElement('div');
-                        skillCard.className = 'glass-effect rounded-xl p-5 hover:scale-105 transition-transform';
-                        skillCard.setAttribute('data-category', skill.category);
-                        
-                        skillCard.innerHTML = `
-                            <div class="flex justify-between items-start mb-3">
-                                <h3 class="text-lg font-bold">${skill.name}</h3>
-                                <div class="text-xs font-medium bg-white/10 rounded-full px-2 py-1">${skill.category}</div>
-                            </div>
-                            <div class="w-full bg-white/10 rounded-full h-2 mt-2">
-                                <div class="bg-gradient-to-r from-primary-500 to-accent-500 h-2 rounded-full" style="width: ${skill.proficiency}%"></div>
-                            </div>
-                            <div class="flex justify-between mt-1">
-                                <span class="text-xs">${skill.proficiency}%</span>
-                            </div>
-                        `;
-                        
-                        skillsContainer.appendChild(skillCard);
-                    });
-                    
-                    // If there's a sync status manager, notify
-                    if (this.syncStatus) {
-                        this.syncStatus.showStatus('Skills UI updated with fresh data', 'success', 2000);
-                    }
-                } else {
-                    console.warn('Skills container not found in the skills section');
-                    // If there's a function to update the UI, call it
-                    if (typeof updateSkillsUI === 'function') {
-                        updateSkillsUI(freshSkills);
-                    } else {
-                        // Manually update the skills UI since the function might not be available
-                        this.updateSkillsUI(freshSkills);
-                    }
+                if (!Array.isArray(skills)) {
+                    console.warn('Skills data is not an array, using empty array instead');
+                    skills = [];
                 }
-            } else {
-                console.warn('Skills section not found');
+                
+                console.log(`✅ Loaded ${skills.length} skills successfully`);
+            } catch (error) {
+                console.error(`❌ Error loading skills:`, error);
+                // Return empty array for skills but don't show errors to public visitors
+                skills = [];
+                
+                // Only show errors in dashboard
+                if (document.querySelector('#dashboard') && this.syncStatus) {
+                    this.syncStatus.showStatus(`Error loading skills: ${error.message}`, 'error', 5000);
+                }
             }
+            
+            // Update the skills UI
+            this.updateSkillsUI(skills);
+            
+            // If in dashboard, also update the skills table
+            if (typeof updateSkillsTable === 'function' && document.querySelector('#dashboard')) {
+                updateSkillsTable(skills);
+            }
+            
+            return skills;
         } catch (error) {
             console.error('Error refreshing skills display:', error);
-            if (this.syncStatus) {
-                this.syncStatus.showStatus('Error updating skills: ' + error.message, 'error');
+            
+            // Only show errors in dashboard
+            if (document.querySelector('#dashboard') && this.syncStatus) {
+                this.syncStatus.showStatus(`Error refreshing skills: ${error.message}`, 'error', 5000);
             }
+            
+            return [];
         }
     }
 
@@ -897,17 +963,68 @@ class GitHubService {
     async loadProfileData() {
         try {
             console.log('🔄 Loading profile data...');
-            const profileData = await this.getFileContent(`${this.dataFolder}/profile.json`);
             
-            // Update profile UI if available
-            if (typeof updateProfileUI === 'function') {
-                updateProfileUI(profileData);
+            // Try to fetch profile from GitHub repository
+            const profilePath = 'data/profile.json';
+            let profile = {};
+            
+            try {
+                console.log(`📄 Fetching profile from ${profilePath}`);
+                profile = await this.getFileContent(profilePath);
+                
+                if (!profile || typeof profile !== 'object') {
+                    console.warn('Profile data is not an object, using empty profile instead');
+                    profile = {};
+                }
+                
+                console.log('✅ Profile data loaded successfully');
+            } catch (error) {
+                console.error(`❌ Error loading profile:`, error);
+                // Return empty object for profile but don't show errors to public visitors
+                profile = {};
+                
+                // Only show errors in dashboard
+                if (document.querySelector('#dashboard') && this.syncStatus) {
+                    this.syncStatus.showStatus(`Error loading profile: ${error.message}`, 'error', 5000);
+                }
             }
             
-            console.log('✅ Profile data loaded successfully');
-            return profileData;
+            // Update the profile UI
+            if (typeof updateProfileUI === 'function') {
+                updateProfileUI(profile);
+            } else {
+                // If updateProfileUI function is not available, do a basic update
+                const nameEl = document.querySelector('.profile-name');
+                const titleEl = document.querySelector('.profile-title');
+                const bioEl = document.querySelector('.profile-bio');
+                const avatarEl = document.querySelector('.profile-avatar');
+                
+                if (nameEl && profile.name) nameEl.textContent = profile.name;
+                if (titleEl && profile.title) titleEl.textContent = profile.title;
+                if (bioEl && profile.bio) bioEl.textContent = profile.bio;
+                if (avatarEl && profile.image) avatarEl.src = profile.image;
+                
+                // Update social links if available
+                if (profile.social) {
+                    const socialLinks = document.querySelectorAll('.social-link');
+                    socialLinks.forEach(link => {
+                        const network = link.getAttribute('data-network');
+                        if (network && profile.social[network]) {
+                            link.href = profile.social[network];
+                        }
+                    });
+                }
+            }
+            
+            return profile;
         } catch (error) {
-            console.error('❌ Error loading profile data:', error);
+            console.error('Error loading profile data:', error);
+            
+            // Only show errors in dashboard
+            if (document.querySelector('#dashboard') && this.syncStatus) {
+                this.syncStatus.showStatus(`Error loading profile data: ${error.message}`, 'error', 5000);
+            }
+            
             return {};
         }
     }
