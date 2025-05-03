@@ -53,10 +53,41 @@ function setupGitHubBackend() {
             initializeGitHubService();
         }
         
-        // Check for data directory and create if needed
+        // Check for data directory and required files
         checkAndCreateRequiredDirectories();
+        
+        // Verify .nojekyll file exists (critical for GitHub Pages)
+        checkNojekyllFile();
     } else {
         console.log('Not on GitHub Pages, using local storage backend');
+    }
+}
+
+// Function to check if .nojekyll file exists and create it if needed
+async function checkNojekyllFile() {
+    if (!window.githubService) {
+        console.log('GitHub service not initialized, skipping .nojekyll check');
+        return;
+    }
+    
+    try {
+        console.log('Checking for .nojekyll file (required for GitHub Pages)...');
+        const nojekyllExists = await window.githubService.checkFileExists('.nojekyll');
+        
+        if (!nojekyllExists) {
+            console.log('.nojekyll file not found, creating it...');
+            const nojekyllContent = "# This file tells GitHub Pages not to process this site with Jekyll";
+            
+            await window.githubService.createFile('.nojekyll', nojekyllContent, 
+                'Add .nojekyll file to disable Jekyll processing');
+                
+            console.log('.nojekyll file created successfully');
+        } else {
+            console.log('.nojekyll file exists, GitHub Pages will serve files correctly');
+        }
+    } catch (error) {
+        console.error('Error checking/creating .nojekyll file:', error);
+        console.warn('WARNING: Without .nojekyll file, GitHub Pages may not serve files with underscores correctly');
     }
 }
 
@@ -79,9 +110,51 @@ async function checkAndCreateRequiredDirectories() {
             await window.githubService.createFile('data/README.md', 
                 '# Portfolio Data\n\nThis directory contains data files for the portfolio application.');
         }
+        
+        // Check for essential data files
+        const requiredFiles = [
+            { path: 'data/projects.json', defaultContent: [] },
+            { path: 'data/skills.json', defaultContent: [] },
+            { path: 'data/profile.json', defaultContent: getDefaultProfile() },
+            { path: 'data/settings.json', defaultContent: getDefaultSettings() }
+        ];
+        
+        for (const file of requiredFiles) {
+            const exists = await window.githubService.checkFileExists(file.path);
+            if (!exists) {
+                console.log(`${file.path} not found, creating with default content...`);
+                await window.githubService.createFile(file.path, file.defaultContent);
+            }
+        }
     } catch (error) {
-        console.error('Error checking/creating data directory:', error);
+        console.error('Error checking/creating required files:', error);
     }
+}
+
+// Default profile data for initialization
+function getDefaultProfile() {
+    return {
+        name: "Bayezid",
+        title: "Data Scientist & Web Developer",
+        bio: "Passionate about data science, machine learning, and web development.",
+        location: "Bangladesh",
+        email: "hrbayezid@gmail.com",
+        github: "hrbayezid",
+        linkedin: ""
+    };
+}
+
+// Default settings data for initialization
+function getDefaultSettings() {
+    return {
+        theme: "dark",
+        github_backend_enabled: true,
+        notifications: {
+            email_notifications: false,
+            project_updates: true,
+            show_email: true
+        }
+    };
 }
 
 // Initialize global API client
@@ -119,6 +192,24 @@ function initializeApiClient() {
                 return true;
             } catch (error) {
                 console.error(`API POST error (${endpoint}):`, error);
+                return false;
+            }
+        },
+        
+        delete: async (endpoint) => {
+            try {
+                // If GitHub Service is available and initialized, use it
+                if (window.githubService && window.isGitHubPagesEnvironment()) {
+                    // Convert API endpoint to data path
+                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                    return await window.githubService.deleteFile(dataPath);
+                }
+                
+                // Fallback to localStorage
+                localStorage.removeItem(endpoint.replace('/api/', ''));
+                return true;
+            } catch (error) {
+                console.error(`API DELETE error (${endpoint}):`, error);
                 return false;
             }
         }

@@ -247,6 +247,35 @@ class GitHubService {
         return await this.updateFile(`${this.dataFolder}/skills.json`, skills);
     }
 
+    // Check if a file exists in the repository
+    async checkFileExists(path) {
+        try {
+            // First, try using the raw GitHub URL for faster checks
+            const rawResponse = await fetch(`https://raw.githubusercontent.com/${this.owner}/${this.repo}/main/${path}`);
+            
+            if (rawResponse.ok) {
+                return true;
+            }
+            
+            // If raw check failed, try the API (which might work if we have a token)
+            if (this.token) {
+                const apiResponse = await fetch(`${this.apiBaseUrl}/repos/${this.owner}/${this.repo}/contents/${path}`, {
+                    headers: {
+                        'Authorization': `Bearer ${this.token}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+                
+                return apiResponse.ok;
+            }
+            
+            return false;
+        } catch (error) {
+            console.warn(`Error checking if file exists (${path}):`, error);
+            return false;
+        }
+    }
+
     async createFile(path, content, commitMessage = null) {
         if (!this.token) {
             throw new Error('GitHub token not set. Authentication required for creating files.');
