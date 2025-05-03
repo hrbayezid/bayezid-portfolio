@@ -50,7 +50,7 @@ function setupGitHubBackend() {
         console.log('GitHub Pages environment detected, configuring backend integration');
         
         // Disable certain admin features that require write access if not authenticated
-        const token = localStorage.getItem('active_github_token');
+        const token = localStorage.getItem('github_token');
         if (!token) {
             console.log('No GitHub token found, running in read-only mode');
             // We'll set up read-only mode later
@@ -140,27 +140,15 @@ async function checkAndCreateRequiredDirectories() {
 
 // Default profile data for initialization
 function getDefaultProfile() {
-    return {
-        name: "Bayezid",
-        title: "Data Scientist & Web Developer",
-        bio: "Passionate about data science, machine learning, and web development.",
-        location: "Bangladesh",
-        email: "hrbayezid@gmail.com",
-        github: "hrbayezid",
-        linkedin: ""
-    };
+    // Return empty object instead of dummy data
+    return {};
 }
 
 // Default settings data for initialization
 function getDefaultSettings() {
+    // Return minimal settings with no dummy data
     return {
-        theme: "dark",
-        github_backend_enabled: true,
-        notifications: {
-            email_notifications: false,
-            project_updates: true,
-            show_email: true
-        }
+        theme: "dark"
     };
 }
 
@@ -205,10 +193,8 @@ function initializeApiClient() {
                         if (!response.ok) {
                             if (response.status === 404) {
                                 console.warn(`⚠️ File ${dataPath} not found in GitHub repository`);
-                                // Return appropriate empty data structure
-                                const emptyData = endpoint.includes('skills') ? [] : 
-                                                endpoint.includes('projects') ? [] : {};
-                                return emptyData;
+                                // Return empty data structure - no fallbacks
+                                return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
                             }
                             
                             throw new Error(`GitHub fetch failed: ${response.status} ${response.statusText}`);
@@ -217,7 +203,7 @@ function initializeApiClient() {
                         const jsonData = await response.json();
                         console.log(`💾 Data loaded from direct GitHub URL: ${dataPath}`);
                         
-                        // Cache the data
+                        // For public view, we don't cache in localStorage, only in memory during session
                         window.apiClient.cache[cacheKey] = jsonData;
                         window.apiClient.lastFetchTime[endpoint] = now;
                         
@@ -225,16 +211,8 @@ function initializeApiClient() {
                     } catch (error) {
                         console.error(`❌ Error fetching ${endpoint} from GitHub:`, error.message);
                         
-                        // Return appropriate empty data structure without showing errors to public visitors
-                        if (endpoint.includes('skills')) {
-                            return [];
-                        } else if (endpoint.includes('projects')) {
-                            return [];
-                        } else if (endpoint.includes('profile')) {
-                            return {};
-                        } else {
-                            return null;
-                        }
+                        // Return empty data structure without any fallbacks
+                        return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
                     }
                 }
                 
@@ -305,10 +283,8 @@ function initializeApiClient() {
                                 return cachedData;
                             }
                             
-                            // Return empty data structure based on endpoint
-                            if (endpoint.includes('skills')) {
-                                return [];
-                            } else if (endpoint.includes('projects')) {
+                            // Return empty data structure based on endpoint without using dummy data
+                            if (endpoint.includes('skills') || endpoint.includes('projects')) {
                                 return [];
                             } else if (endpoint.includes('profile')) {
                                 return {};
@@ -319,7 +295,7 @@ function initializeApiClient() {
                     }
                 } else {
                     // GitHub service not available, try direct GitHub fetch
-                    console.log(`🔄 GitHub service not available, using direct GitHub fetch for ${endpoint}`);
+                    console.log(`🔄 GitHub service not available, using direct GitHub URL for ${endpoint}`);
                     const owner = 'hrbayezid';
                     const repo = 'bayezid-portfolio';
                     const dataPath = `data${endpoint.replace('/api', '')}.json`;
@@ -334,7 +310,7 @@ function initializeApiClient() {
                         const jsonData = await response.json();
                         console.log(`💾 Data loaded from direct GitHub URL`);
                         
-                        // Cache successful results
+                        // Cache successful results in memory only
                         window.apiClient.cache[cacheKey] = jsonData;
                         window.apiClient.lastFetchTime[endpoint] = now;
                         
@@ -355,16 +331,8 @@ function initializeApiClient() {
                             return cachedData;
                         }
                         
-                        // Return empty data structure based on endpoint
-                        if (endpoint.includes('skills')) {
-                            return [];
-                        } else if (endpoint.includes('projects')) {
-                            return [];
-                        } else if (endpoint.includes('profile')) {
-                            return {};
-                        } else {
-                            return null;
-                        }
+                        // Return empty data structure with no dummy data
+                        return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
                     }
                 }
             } catch (error) {
@@ -377,16 +345,8 @@ function initializeApiClient() {
                     }
                 }
                 
-                // Return empty data on error
-                if (endpoint.includes('skills')) {
-                    return [];
-                } else if (endpoint.includes('projects')) {
-                    return [];
-                } else if (endpoint.includes('profile')) {
-                    return {};
-                } else {
-                    return null;
-                }
+                // Return empty data with no dummy fallback
+                return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
             }
         },
         
@@ -1032,7 +992,7 @@ async function loadPublicPortfolioData() {
                     // Show empty state
                     const skillsGrid = document.getElementById('skills-grid');
                     if (skillsGrid) {
-                        showEmptyState(skillsGrid, 'No skills data found. Check back later!');
+                        showEmptyState(skillsGrid, 'No skills data available yet.');
                     }
                 }
             } catch (skillsError) {
@@ -1058,13 +1018,7 @@ async function loadPublicPortfolioData() {
                     // Show empty state
                     const projectsGrid = document.getElementById('projects-grid');
                     if (projectsGrid) {
-                        // Show empty state
-                        const noProjectsMessage = document.getElementById('no-projects-message');
-                        if (noProjectsMessage) {
-                            noProjectsMessage.classList.remove('hidden');
-                        } else {
-                            showEmptyState(projectsGrid, 'No projects data found. Check back later!');
-                        }
+                        showEmptyState(projectsGrid, 'No projects data available yet.');
                     }
                 }
             } catch (projectsError) {
@@ -1086,7 +1040,7 @@ async function loadPublicPortfolioData() {
                 updateProfileUI(profile);
             } else {
                 console.warn('⚠️ No profile data found or empty profile object');
-                // Profile errors are less critical, no need to show error UI
+                // Don't update profile UI with dummy data
             }
         } catch (profileError) {
             console.error('❌ Error loading profile data:', profileError);

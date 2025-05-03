@@ -685,17 +685,17 @@ class GitHubBackendSetup {
 
     getDefaultProfile() {
         return {
-            name: "Bayezid",
-            title: "Data Scientist & Web Developer",
-            bio: "Passionate about data science, machine learning, and web development with 3+ years of experience in Python, data analysis, and visualization.",
-            location: "Dhaka, Bangladesh",
-            email: "hrbayezid@gmail.com",
-            image: "https://via.placeholder.com/200",
+            name: "",
+            title: "",
+            bio: "",
+            location: "",
+            email: "",
+            image: "",
             social: {
-                github: "https://github.com/hrbayezid",
-                linkedin: "https://linkedin.com/in/your-linkedin",
-                twitter: "https://twitter.com/yourusername",
-                kaggle: "https://kaggle.com/yourusername"
+                github: "",
+                linkedin: "",
+                twitter: "",
+                kaggle: ""
             }
         };
     }
@@ -703,8 +703,6 @@ class GitHubBackendSetup {
     getDefaultSettings() {
         return {
             theme: "dark",
-            showLearningSection: true,
-            githubIntegration: true,
             lastUpdated: new Date().toISOString()
         };
     }

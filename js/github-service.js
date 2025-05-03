@@ -33,13 +33,9 @@ class GitHubService {
             const isAdminDashboard = document.querySelector('#dashboard');
             
             if (!isAdminDashboard) {
-                console.log('📄 Public visitor detected, loading data without authentication');
-                await Promise.all([
-                    this.refreshSkillsDisplay(),
-                    this.refreshProjectsDisplay(),
-                    this.loadProfileData()
-                ]);
-                console.log('✅ Public data loaded successfully');
+                console.log('📄 Public visitor detected, loading data using raw.githubusercontent.com');
+                // Leave data loading to the public portfolio function in main.js
+                // This ensures we don't rely on the GitHub service for public data loading
                 return; // Exit early for public visitors
             }
             
@@ -549,6 +545,12 @@ class GitHubService {
         try {
             console.log('🔄 Refreshing projects display...');
             
+            // If on a public page, let the dedicated public loading function handle it
+            if (!document.querySelector('#dashboard')) {
+                console.log('Public page detected - projects loading handled by public portfolio function');
+                return [];
+            }
+            
             // First, try to get projects data from GitHub
             const projectsPath = 'data/projects.json';
             let projects = [];
@@ -598,6 +600,12 @@ class GitHubService {
     async refreshSkillsDisplay() {
         try {
             console.log('🔄 Refreshing skills display...');
+            
+            // If on a public page, let the dedicated public loading function handle it
+            if (!document.querySelector('#dashboard')) {
+                console.log('Public page detected - skills loading handled by public portfolio function');
+                return [];
+            }
             
             // First, try to get skills data from GitHub
             const skillsPath = 'data/skills.json';
@@ -661,7 +669,7 @@ class GitHubService {
             skillsGrid.innerHTML = '';
             
             if (!skills || skills.length === 0) {
-                skillsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No skills added yet.</div>';
+                skillsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No skills data available.</div>';
                 return;
             }
             
@@ -692,16 +700,6 @@ class GitHubService {
             if (staticSkills) {
                 staticSkills.classList.add('hidden');
             }
-            
-            // Show the empty state message if needed
-            const emptyState = document.getElementById('no-skills-message');
-            if (emptyState) {
-                if (skills.length === 0) {
-                    emptyState.classList.remove('hidden');
-                } else {
-                    emptyState.classList.add('hidden');
-                }
-            }
         } catch (error) {
             console.error('Error manually updating skills UI:', error);
         }
@@ -723,20 +721,8 @@ class GitHubService {
             projectsGrid.innerHTML = '';
             
             if (!projects || projects.length === 0) {
-                // If there's an empty state message, show it
-                const noProjectsMessage = document.getElementById('no-projects-message');
-                if (noProjectsMessage) {
-                    noProjectsMessage.classList.remove('hidden');
-                } else {
-                    projectsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No projects added yet.</div>';
-                }
+                projectsGrid.innerHTML = '<div class="col-span-full text-center py-8 text-gray-400">No projects data available.</div>';
                 return;
-            }
-            
-            // If there's a no projects message, hide it
-            const noProjectsMessage = document.getElementById('no-projects-message');
-            if (noProjectsMessage) {
-                noProjectsMessage.classList.add('hidden');
             }
             
             // Add each project
@@ -745,8 +731,14 @@ class GitHubService {
                 projectCard.className = 'project-card glass-effect rounded-xl overflow-hidden hover:scale-105 transition-transform';
                 projectCard.setAttribute('data-category', project.category);
                 
+                // Use the image provided or nothing - no dummy defaults
+                const imageSrc = project.image || '';
+                const imageElement = imageSrc ? 
+                    `<img src="${imageSrc}" alt="${project.title}" class="w-full h-48 object-cover">` :
+                    `<div class="w-full h-48 bg-gray-800 flex items-center justify-center"><i class="fas fa-image text-3xl text-gray-600"></i></div>`;
+                
                 projectCard.innerHTML = `
-                    <img src="${project.image || 'images/default-project.jpg'}" alt="${project.title}" class="w-full h-48 object-cover">
+                    ${imageElement}
                     <div class="p-5">
                         <div class="flex justify-between items-start mb-2">
                             <h3 class="text-lg font-bold">${project.title}</h3>
@@ -754,14 +746,14 @@ class GitHubService {
                         </div>
                         <p class="text-sm text-gray-300">${project.description}</p>
                         <div class="mt-4 flex justify-between items-center">
-                            <a href="#" class="flex items-center text-primary-400 hover:text-primary-300 text-sm">
+                            ${project.details_url ? `<a href="${project.details_url}" class="flex items-center text-primary-400 hover:text-primary-300 text-sm">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 Details
-                            </a>
-                            <a href="#" class="flex items-center text-primary-400 hover:text-primary-300 text-sm">
+                            </a>` : ''}
+                            ${project.live_url ? `<a href="${project.live_url}" class="flex items-center text-primary-400 hover:text-primary-300 text-sm" target="_blank">
                                 <i class="fas fa-external-link-alt mr-1"></i>
                                 View
-                            </a>
+                            </a>` : ''}
                         </div>
                     </div>
                 `;
