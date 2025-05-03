@@ -7,8 +7,8 @@ class GitHubStorage {
     constructor() {
         this.initialized = false;
         this.config = {
-            owner: '',
-            repo: '',
+            owner: 'hrbayezid',
+            repo: 'bayezid-portfolio',
             token: '',
             branch: 'main'
         };
@@ -19,7 +19,7 @@ class GitHubStorage {
     init() {
         console.log('Initializing GitHub Storage API...');
         
-        // Load configuration from localStorage
+        // Load configuration from GitHub service if available
         this.loadConfig();
         
         // Initialize the API client if not done already
@@ -28,27 +28,38 @@ class GitHubStorage {
         }
         
         this.initialized = true;
-        console.log('GitHub Storage API initialized');
+        console.log('💾 GitHub Storage API initialized');
     }
     
     loadConfig() {
         try {
-            // Load from localStorage
-            const storedConfig = localStorage.getItem('github_config');
-            if (storedConfig) {
-                const parsedConfig = JSON.parse(storedConfig);
-                this.config = {
-                    ...this.config,
-                    ...parsedConfig
-                };
-                console.log('GitHub configuration loaded');
+            // Use token from GitHub service only if available
+            if (window.githubService) {
+                // Only grab owner and repo information - not token
+                this.config.owner = window.githubService.owner;
+                this.config.repo = window.githubService.repo;
+                
+                // Only set token if available and user is in admin mode
+                if (window.githubService.token && document.querySelector('#dashboard')) {
+                    this.config.token = window.githubService.token;
+                    console.log('GitHub token loaded for admin operations');
+                } else {
+                    console.log('Running in public read-only mode (no token needed)');
+                }
+                
+                console.log('GitHub configuration loaded from GitHub service');
             } else {
-                console.log('No stored GitHub configuration found');
+                console.log('No GitHub service available, using default configuration');
             }
             
             return this.config;
         } catch (error) {
             console.error('Error loading GitHub configuration:', error);
+            
+            if (window.syncStatus) {
+                window.syncStatus.showStatus(`Error loading GitHub configuration: ${error.message}`, 'error');
+            }
+            
             return this.config;
         }
     }
@@ -61,19 +72,44 @@ class GitHubStorage {
                 ...newConfig
             };
             
-            // Save to localStorage
-            localStorage.setItem('github_config', JSON.stringify(this.config));
+            // If we have a GitHub service, update it as well
+            if (window.githubService && document.querySelector('#dashboard')) {
+                if (newConfig.token) {
+                    window.githubService.setToken(newConfig.token);
+                }
+            }
+            
             console.log('GitHub configuration saved');
+            
+            if (window.syncStatus) {
+                window.syncStatus.showStatus('GitHub configuration updated', 'success');
+            }
             
             return true;
         } catch (error) {
             console.error('Error saving GitHub configuration:', error);
+            
+            if (window.syncStatus) {
+                window.syncStatus.showStatus(`Error saving GitHub configuration: ${error.message}`, 'error');
+            }
+            
             return false;
         }
     }
     
     isConfigured() {
-        return !!(this.config.owner && this.config.repo && this.config.token);
+        // For read operations, we only need owner and repo
+        // For write operations, we also need a token
+        const readConfigured = !!(this.config.owner && this.config.repo);
+        const writeConfigured = readConfigured && !!this.config.token;
+        
+        // In dashboard mode, check for write configuration
+        if (document.querySelector('#dashboard')) {
+            return writeConfigured;
+        }
+        
+        // In public mode, we only need read configuration
+        return readConfigured;
     }
     
     setupApiClient() {
@@ -87,11 +123,42 @@ class GitHubStorage {
                 try {
                     const { owner, repo, token, branch } = this.config;
                     
-                    // Check if GitHub is configured
-                    if (!owner || !repo || !token) {
+                    // For public reads, we only need owner and repo
+                    if (!owner || !repo) {
+                        const errorMsg = 'GitHub configuration is incomplete: missing owner or repo';
+                        
+                        console.error(errorMsg);
+                        if (window.syncStatus) {
+                            window.syncStatus.showStatus(errorMsg, 'error');
+                        }
+                        
                         return {
                             success: false,
-                            error: 'GitHub configuration is incomplete'
+                            error: errorMsg
+                        };
+                    }
+                    
+                    // Check for token only if it's a write operation
+                    const isWriteOperation = options.method === 'PUT' || 
+                                           options.method === 'POST' || 
+                                           options.method === 'DELETE';
+                                           
+                    if (isWriteOperation && !token) {
+                        const errorMsg = 'GitHub configuration is incomplete: token required for write operations';
+                        
+                        // Only show error in dashboard
+                        if (document.querySelector('#dashboard')) {
+                            console.error(errorMsg);
+                            if (window.syncStatus) {
+                                window.syncStatus.showStatus(errorMsg, 'error');
+                            }
+                        } else {
+                            console.warn('Write operation attempted in public mode (skipped)');
+                        }
+                        
+                        return {
+                            success: false,
+                            error: errorMsg
                         };
                     }
                     
@@ -107,12 +174,23 @@ class GitHubStorage {
                         processedUrl = processedUrl.replace('{branch}', branch);
                     }
                     
-                    // Set authentication header
+                    // Add cache busting parameter
+                    if (!processedUrl.includes('?')) {
+                        processedUrl += `?t=${Date.now()}`;
+                    } else {
+                        processedUrl += `&t=${Date.now()}`;
+                    }
+                    
+                    // Set authentication header only if token is available
                     const headers = {
-                        'Authorization': `token ${token}`,
                         'Accept': 'application/vnd.github.v3+json',
                         ...options.headers
                     };
+                    
+                    // Only add Authorization header if token is available
+                    if (token && isWriteOperation) {
+                        headers['Authorization'] = `token ${token}`;
+                    }
                     
                     if (options.method === 'POST' || options.method === 'PUT') {
                         headers['Content-Type'] = 'application/json';
@@ -120,6 +198,10 @@ class GitHubStorage {
                     
                     // Make the request with error handling
                     console.log(`[GitHub API] ${options.method || 'GET'} request to ${processedUrl}`);
+                    
+                    if (window.syncStatus) {
+                        window.syncStatus.showStatus(`GitHub API Request: ${options.method || 'GET'} ${processedUrl}`, 'info', 2000);
+                    }
                     
                     const fetchOptions = {
                         method: options.method || 'GET',
@@ -135,11 +217,33 @@ class GitHubStorage {
                     const response = await fetch(processedUrl, fetchOptions);
                     
                     if (!response.ok) {
+                        // Check for rate limit issues
+                        if (response.status === 403 && response.headers.get('X-RateLimit-Remaining') === '0') {
+                            const rateLimitError = 'GitHub API rate limit exceeded';
+                            
+                            if (window.syncStatus) {
+                                window.syncStatus.rateLimitHit();
+                            } else {
+                                console.warn(rateLimitError);
+                            }
+                            
+                            throw new Error(rateLimitError);
+                        }
+                        
                         const errorData = await response.json().catch(() => ({}));
-                        throw new Error(
-                            errorData.message || 
-                            `GitHub API error: ${response.status} ${response.statusText}`
-                        );
+                        const errorMsg = errorData.message || 
+                            `GitHub API error: ${response.status} ${response.statusText}`;
+                        
+                        // Only show UI error in dashboard
+                        if (document.querySelector('#dashboard')) {
+                            if (window.syncStatus) {
+                                window.syncStatus.showStatus(errorMsg, 'error');
+                            }
+                        } else {
+                            console.warn(`⚠️ GitHub API error: ${errorMsg}`);
+                        }
+                        
+                        throw new Error(errorMsg);
                     }
                     
                     // Check if response is empty
@@ -160,6 +264,16 @@ class GitHubStorage {
                     }
                 } catch (error) {
                     console.error(`[GitHub API] Request error:`, error);
+                    
+                    // Only show UI error in dashboard
+                    if (document.querySelector('#dashboard')) {
+                        if (window.syncStatus) {
+                            window.syncStatus.showStatus(`GitHub API Error: ${error.message}`, 'error');
+                        }
+                    } else {
+                        console.warn(`⚠️ GitHub API request failed: ${error.message}`);
+                    }
+                    
                     return {
                         success: false,
                         error: error.message || 'GitHub API request failed',
@@ -177,46 +291,76 @@ class GitHubStorage {
                 return await window.apiClient.github.request(`${API_ENDPOINTS.GITHUB_API}/user`);
             },
             
-            // Get content
+            // Get content directly from raw GitHub URL without requiring token
             getContent: async (path) => {
-                // Convert API endpoint to GitHub content path
-                const contentPath = path.replace('/api/', '').replace(/\/$/, '') + '.json';
-                
-                const API_ENDPOINTS = window.API_ENDPOINTS || {
-                    GITHUB_CONTENT: 'https://api.github.com/repos/{owner}/{repo}/contents'
-                };
-                
-                // Make the request
-                const response = await window.apiClient.github.request(
-                    `${API_ENDPOINTS.GITHUB_CONTENT}/${contentPath}`, 
-                    { method: 'GET' }
-                );
-                
-                if (response.success && response.data && response.data.content) {
-                    try {
-                        // GitHub API returns Base64 encoded content
-                        const decodedContent = atob(response.data.content);
-                        const parsedData = JSON.parse(decodedContent);
+                try {
+                    // Convert API endpoint to GitHub content path
+                    const contentPath = path.replace('/api/', '').replace(/\/$/, '') + '.json';
+                    console.log(`🔄 Fetching ${contentPath} from GitHub...`);
+                    
+                    // First try the raw GitHub approach, which works without authentication
+                    const rawUrl = `https://raw.githubusercontent.com/${this.config.owner}/${this.config.repo}/main/${contentPath}?t=${Date.now()}`;
+                    console.log(`📄 Accessing public URL: ${rawUrl}`);
+                    
+                    const response = await fetch(rawUrl);
+                    
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            console.warn(`⚠️ File ${contentPath} not found`);
+                            throw new Error(`File ${contentPath} not found in GitHub repository`);
+                        }
                         
-                        return {
-                            success: true,
-                            data: parsedData,
-                            source: 'github'
-                        };
-                    } catch (error) {
-                        return {
-                            success: false,
-                            error: 'Failed to parse content: ' + error.message,
-                            errorDetails: error
-                        };
+                        throw new Error(`GitHub raw content fetch failed: ${response.status} ${response.statusText}`);
                     }
+                    
+                    const text = await response.text();
+                    let content;
+                    
+                    try {
+                        content = JSON.parse(text);
+                    } catch (e) {
+                        // Not a JSON file
+                        content = text;
+                    }
+                    
+                    console.log(`💾 Data loaded from GitHub: ${contentPath}`);
+                    return {
+                        success: true,
+                        data: content,
+                        source: 'github-raw'
+                    };
+                } catch (error) {
+                    console.warn(`⚠️ Could not load data: ${error.message}`);
+                    
+                    // Determine empty state based on path
+                    let emptyData = {};
+                    if (path.includes('skills')) {
+                        emptyData = [];
+                    } else if (path.includes('projects')) {
+                        emptyData = [];
+                    } else if (path.includes('profile')) {
+                        emptyData = {};
+                    }
+                    
+                    return {
+                        success: false,
+                        error: error.message,
+                        data: emptyData
+                    };
                 }
-                
-                return response;
             },
             
             // Create or update content
             createContent: async (path, data) => {
+                // Check if token is available for write operations
+                if (!this.config.token) {
+                    console.error('🔒 Token required: No GitHub token available for write operations');
+                    return {
+                        success: false,
+                        error: 'GitHub token not available. Please log in to make changes.'
+                    };
+                }
+                
                 // Convert API endpoint to GitHub content path
                 const contentPath = path.replace('/api/', '').replace(/\/$/, '') + '.json';
                 
@@ -250,6 +394,15 @@ class GitHubStorage {
             
             // Update content
             updateContent: async (path, data, sha) => {
+                // Check if token is available for write operations
+                if (!this.config.token) {
+                    console.error('🔒 Token required: No GitHub token available for write operations');
+                    return {
+                        success: false,
+                        error: 'GitHub token not available. Please log in to make changes.'
+                    };
+                }
+                
                 // Convert API endpoint to GitHub content path
                 const contentPath = path.replace('/api/', '').replace(/\/$/, '') + '.json';
                 
@@ -288,6 +441,15 @@ class GitHubStorage {
             
             // Delete content
             deleteContent: async (path) => {
+                // Check if token is available for write operations
+                if (!this.config.token) {
+                    console.error('🔒 Token required: No GitHub token available for delete operations');
+                    return {
+                        success: false,
+                        error: 'GitHub token not available. Please log in to delete content.'
+                    };
+                }
+                
                 // Convert API endpoint to GitHub content path
                 const contentPath = path.replace('/api/', '').replace(/\/$/, '') + '.json';
                 
@@ -319,97 +481,105 @@ class GitHubStorage {
                 );
             },
             
-            // Helper to migrate all localStorage data to GitHub
-            migrateLocalToGitHub: async () => {
+            // Test the connection to GitHub
+            testConnection: async () => {
                 try {
-                    console.log('Starting data migration to GitHub...');
-                    
-                    // Check if GitHub is configured properly
-                    if (!this.isConfigured()) {
-                        return {
-                            success: false,
-                            error: 'GitHub is not fully configured'
-                        };
-                    }
-                    
-                    // Define the data keys to migrate
-                    const dataKeys = ['skills', 'projects', 'profile_settings', 'social_links'];
-                    const results = {};
-                    
-                    // Migrate each data key
-                    for (const key of dataKeys) {
-                        console.log(`Migrating ${key} data to GitHub...`);
+                    // For read operations, we only need owner and repo
+                    if (!this.config.owner || !this.config.repo) {
+                        const errorMsg = 'GitHub is not configured: missing owner or repo';
+                        console.error(errorMsg);
                         
-                        // Get data from localStorage
-                        const data = localStorage.getItem(key);
-                        if (!data) {
-                            console.log(`No ${key} data found in localStorage, skipping`);
-                            results[key] = { success: true, message: 'No data to migrate' };
-                            continue;
+                        if (window.syncStatus) {
+                            window.syncStatus.showStatus(errorMsg, 'error');
                         }
                         
-                        try {
-                            // Parse data
-                            const parsedData = JSON.parse(data);
+                        return { success: false, error: errorMsg };
+                    }
+                    
+                    // First test raw github access which doesn't require authentication
+                    try {
+                        const rawUrl = `https://raw.githubusercontent.com/${this.config.owner}/${this.config.repo}/main/README.md?t=${Date.now()}`;
+                        const readmeResponse = await fetch(rawUrl);
+                        
+                        if (readmeResponse.ok) {
+                            console.log('✅ Public GitHub access successful');
                             
-                            // Save to GitHub
-                            const result = await window.apiClient.github.createContent(`/api/${key}`, parsedData);
-                            results[key] = result;
-                            
-                            if (result.success) {
-                                console.log(`Successfully migrated ${key} data to GitHub`);
-                            } else {
-                                console.error(`Failed to migrate ${key} data:`, result.error);
+                            // If we're in public mode, this is all we need
+                            if (!document.querySelector('#dashboard')) {
+                                return { 
+                                    success: true, 
+                                    message: 'Public GitHub access successful',
+                                    isPublic: true
+                                };
                             }
-                        } catch (error) {
-                            console.error(`Error processing ${key} data:`, error);
-                            results[key] = { 
+                        }
+                    } catch (readError) {
+                        console.warn('⚠️ Public GitHub access check failed:', readError.message);
+                    }
+                    
+                    // For admin/dashboard mode, also check token if available
+                    if (document.querySelector('#dashboard')) {
+                        if (!this.config.token) {
+                            const warnMsg = 'GitHub token not set: write operations will be unavailable';
+                            console.warn(warnMsg);
+                            
+                            if (window.syncStatus) {
+                                window.syncStatus.showStatus(warnMsg, 'warning');
+                            }
+                            
+                            return { 
+                                success: true, 
+                                message: 'Public GitHub access successful, but token not set for write operations',
+                                isPublic: true,
+                                writeAccess: false
+                            };
+                        }
+                        
+                        // Test the token by making a user API call
+                        const response = await window.apiClient.github.user();
+                        
+                        if (response.success) {
+                            console.log(`✅ Connected to GitHub as ${response.data.login} with write access`);
+                            
+                            if (window.syncStatus) {
+                                window.syncStatus.showStatus(`Connected to GitHub as ${response.data.login}`, 'success');
+                            }
+                            
+                            return { 
+                                success: true, 
+                                message: `Connected to GitHub as ${response.data.login}`,
+                                user: response.data,
+                                writeAccess: true
+                            };
+                        } else {
+                            const errorMsg = response.error || 'Failed to validate GitHub token';
+                            console.error(errorMsg);
+                            
+                            if (window.syncStatus) {
+                                window.syncStatus.showStatus(errorMsg, 'error');
+                            }
+                            
+                            return { 
                                 success: false, 
-                                error: `Error processing data: ${error.message}` 
+                                error: errorMsg,
+                                writeAccess: false
                             };
                         }
                     }
                     
-                    // Check if all migrations were successful
-                    const allSuccessful = Object.values(results).every(result => result.success);
-                    
-                    return {
-                        success: allSuccessful,
-                        results,
-                        message: allSuccessful ? 
-                            'All data successfully migrated to GitHub' : 
-                            'Some data failed to migrate, see results for details'
+                    // Default return for non-dashboard mode
+                    return { 
+                        success: true, 
+                        message: 'Public GitHub access successful',
+                        isPublic: true
                     };
-                } catch (error) {
-                    console.error('Error during migration:', error);
-                    return {
-                        success: false,
-                        error: error.message || 'Migration failed'
-                    };
-                }
-            },
-            
-            // Test the connection to GitHub
-            testConnection: async () => {
-                try {
-                    if (!this.isConfigured()) {
-                        return { success: false, error: 'GitHub is not fully configured' };
-                    }
-                    
-                    // Test the connection by making a simple API call
-                    const response = await window.apiClient.github.user();
-                    
-                    if (response.success) {
-                        return { 
-                            success: true, 
-                            message: `Connected to GitHub as ${response.data.login}`,
-                            user: response.data 
-                        };
-                    } else {
-                        return { success: false, error: response.error || 'Failed to connect to GitHub' };
-                    }
                 } catch (error) {
                     console.error('Error testing GitHub connection:', error);
+                    
+                    if (window.syncStatus) {
+                        window.syncStatus.showStatus(`Error testing GitHub connection: ${error.message}`, 'error');
+                    }
+                    
                     return { success: false, error: error.message || 'Unknown error' };
                 }
             }
