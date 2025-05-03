@@ -216,6 +216,136 @@ function initializeApiClient() {
     };
 }
 
+// Handle dashboard tab switching
+function setupDashboardTabs() {
+    const dashboardTabs = document.querySelectorAll('.dashboard-tab');
+    const contentAreas = document.querySelectorAll('.dashboard-content');
+    
+    if (dashboardTabs.length === 0 || contentAreas.length === 0) {
+        console.log('Dashboard tabs or content areas not found');
+        return;
+    }
+    
+    console.log('Setting up dashboard tab switching');
+    
+    // Add click event listeners to each tab
+    dashboardTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const targetTabId = tab.getAttribute('data-tab');
+            if (!targetTabId) {
+                console.error('Tab missing data-tab attribute', tab);
+                return;
+            }
+            
+            // Update active state on tabs
+            dashboardTabs.forEach(t => {
+                t.classList.remove('active');
+            });
+            tab.classList.add('active');
+            
+            // Show the selected content panel and hide others
+            contentAreas.forEach(content => {
+                if (content.id === `${targetTabId}-tab`) {
+                    content.classList.remove('hidden');
+                } else {
+                    content.classList.add('hidden');
+                }
+            });
+            
+            console.log(`Switched to dashboard tab: ${targetTabId}`);
+        });
+    });
+    
+    // Also add event listeners to skill filters, project filters, etc.
+    setupContentFilters();
+}
+
+// Setup content filters (skills, projects)
+function setupContentFilters() {
+    // Skills filters in dashboard
+    const skillFilters = document.querySelectorAll('.skill-filter');
+    if (skillFilters.length > 0) {
+        skillFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                const category = filter.getAttribute('data-filter');
+                
+                // Update active state on filters
+                skillFilters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                
+                // Filter skills in table
+                filterTableRows('#skills-table-body tr', category);
+            });
+        });
+    }
+    
+    // Project filters in dashboard
+    const projectFilters = document.querySelectorAll('.project-filter-admin');
+    if (projectFilters.length > 0) {
+        projectFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                const category = filter.getAttribute('data-filter');
+                
+                // Update active state on filters
+                projectFilters.forEach(f => f.classList.remove('active'));
+                filter.classList.add('active');
+                
+                // Filter projects in table
+                filterTableRows('#projects-table-body tr', category);
+            });
+        });
+    }
+    
+    // Public project filters
+    const publicProjectFilters = document.querySelectorAll('.project-filter');
+    if (publicProjectFilters.length > 0) {
+        publicProjectFilters.forEach(filter => {
+            filter.addEventListener('click', () => {
+                const category = filter.getAttribute('data-filter');
+                
+                // Update active state on filters
+                publicProjectFilters.forEach(f => f.classList.remove('active-filter'));
+                filter.classList.add('active-filter');
+                
+                // Filter project cards
+                filterProjectCards(category);
+            });
+        });
+    }
+}
+
+// Filter table rows based on category
+function filterTableRows(selector, category) {
+    const rows = document.querySelectorAll(selector);
+    if (rows.length === 0) return;
+    
+    rows.forEach(row => {
+        // Get the category cell (assumed to be the second cell)
+        const categoryCell = row.querySelector('td:nth-child(2)');
+        if (!categoryCell) return;
+        
+        if (category === 'all' || categoryCell.textContent.includes(category)) {
+            row.classList.remove('hidden');
+        } else {
+            row.classList.add('hidden');
+        }
+    });
+}
+
+// Filter project cards in the public view
+function filterProjectCards(category) {
+    const cards = document.querySelectorAll('#projects-grid .project-card');
+    if (cards.length === 0) return;
+    
+    cards.forEach(card => {
+        if (category === 'all' || card.getAttribute('data-category') === category) {
+            card.classList.remove('hidden');
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+}
+
 // Initialize the portfolio application
 document.addEventListener('DOMContentLoaded', () => {
     console.log('Initializing portfolio application...');
@@ -226,11 +356,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize API client
     initializeApiClient();
     
+    // Set up dashboard tabs and filters
+    setupDashboardTabs();
+    
     // Check if we need to show the GitHub setup UI
     if (isGitHubPagesEnvironment() && !localStorage.getItem('github_setup_complete')) {
         // We'll add code to show the setup UI if needed
         console.log('GitHub setup not complete, should show setup UI');
     }
     
+    // Setup mobile menu toggle
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuButton && mobileMenu) {
+        mobileMenuButton.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+            mobileMenuButton.setAttribute('aria-expanded', !expanded);
+        });
+    }
+    
+    // Back to top button
+    const backToTopButton = document.getElementById('back-to-top');
+    if (backToTopButton) {
+        // Show button when user scrolls down
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.remove('hidden');
+            } else {
+                backToTopButton.classList.add('hidden');
+            }
+        });
+        
+        // Scroll to top when clicked
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+    
     console.log('Portfolio initialization complete');
-}); 
+});
