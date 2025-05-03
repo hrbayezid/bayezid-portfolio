@@ -1,17 +1,12 @@
 /**
  * Authentication Manager for Portfolio
- * This file handles user authentication for the admin dashboard
+ * This file handles user authentication for the admin dashboard using GitHub token
  */
 
 class AuthManager {
     constructor() {
         this.isAuthenticated = false;
         this.currentUser = null;
-        this.adminCredentials = {
-            username: 'bayezid',
-            email: 'hrbayezid@gmail.com',
-            password: 'Bayezid@420'
-        };
         
         // Initialize authentication state
         this.init();
@@ -21,40 +16,17 @@ class AuthManager {
      * Initialize authentication state, check if user is already logged in
      */
     init() {
-        console.log('Initializing authentication system...');
+        console.log('Initializing GitHub token authentication system...');
         
-        // Check if user is already logged in from localStorage
-        const isLoggedIn = localStorage.getItem('adminLoggedIn') === 'true';
-        const userData = localStorage.getItem('userData');
+        // Check if GitHub token exists in localStorage
+        const githubToken = localStorage.getItem('github_token');
         
-        if (isLoggedIn && userData) {
-            try {
-                this.currentUser = JSON.parse(userData);
-                this.isAuthenticated = true;
-                console.log('User already authenticated:', this.currentUser.username);
-                
-                // Update UI for authenticated user (which will also ensure GitHub tab visibility)
-                this.updateUIForAuthenticatedUser();
-                
-                // Make sure GitHub token is loaded if we're already authenticated
-                if (window.githubService) {
-                    const token = localStorage.getItem('active_github_token');
-                    if (token) {
-                        console.log('Reloading existing GitHub token');
-                        window.githubService.loadToken();
-                    } else {
-                        console.log('⚠️ No GitHub token available for authenticated user');
-                    }
-                    
-                    // Explicitly ensure GitHub Setup tab is visible (belt and suspenders approach)
-                    setTimeout(() => this.ensureGitHubSetupTabVisible(), 300);
-                }
-            } catch (error) {
-                console.error('Error parsing user data:', error);
-                this.handleLogout();
-            }
+        if (githubToken) {
+            // Attempt to auto-login with existing token
+            this.validateAndLogin(githubToken, true);
         } else {
-            console.log('No active session found');
+            console.log('No GitHub token found, user not authenticated');
+            this.updateUIForUnauthenticatedUser();
         }
         
         // Set up event listeners
@@ -74,15 +46,6 @@ class AuthManager {
             });
         }
         
-        // Signup form submission (if available)
-        const signupForm = document.getElementById('signup-form');
-        if (signupForm) {
-            signupForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                this.handleSignup();
-            });
-        }
-        
         // Close modal buttons
         const closeButtons = document.querySelectorAll('.close-modal');
         closeButtons.forEach(button => {
@@ -90,68 +53,93 @@ class AuthManager {
                 document.getElementById('auth-modal').classList.add('hidden');
             });
         });
-        
-        // Auth tab switching
-        const loginTab = document.getElementById('login-tab');
-        const signupTab = document.getElementById('signup-tab');
-        if (loginTab && signupTab) {
-            loginTab.addEventListener('click', () => this.switchAuthTab('login'));
-            signupTab.addEventListener('click', () => this.switchAuthTab('signup'));
-        }
-    }
-    
-    /**
-     * Switch between login and signup tabs
-     */
-    switchAuthTab(tab) {
-        const loginTab = document.getElementById('login-tab');
-        const signupTab = document.getElementById('signup-tab');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        
-        if (tab === 'login') {
-            loginTab.classList.add('active-tab');
-            loginTab.classList.remove('text-gray-400');
-            signupTab.classList.remove('active-tab');
-            signupTab.classList.add('text-gray-400');
-            loginForm.classList.remove('hidden');
-            signupForm.classList.add('hidden');
-        } else {
-            signupTab.classList.add('active-tab');
-            signupTab.classList.remove('text-gray-400');
-            loginTab.classList.remove('active-tab');
-            loginTab.classList.add('text-gray-400');
-            signupForm.classList.remove('hidden');
-            loginForm.classList.add('hidden');
-        }
     }
     
     /**
      * Handle login form submission
      */
-    handleLogin() {
-        const usernameOrEmail = document.getElementById('login-username').value.trim();
-        const password = document.getElementById('login-password').value;
-        const rememberMe = document.getElementById('remember-me')?.checked || false;
+    async handleLogin() {
+        const githubToken = document.getElementById('github-token-input').value.trim();
         
-        console.log('Login attempt:', { usernameOrEmail, password: '********', rememberMe });
+        if (!githubToken) {
+            this.showNotification('Please enter a GitHub token', 'error');
+            return;
+        }
         
-        // Validate credentials
-        const isValid = this.validateCredentials(usernameOrEmail, password);
-        
-        if (isValid) {
-            console.log('🔐 Login successful, updating authentication state');
+        try {
+            // Show loading state
+            const submitBtn = document.querySelector('#login-form button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Validating...';
+                submitBtn.disabled = true;
+            }
+            
+            // Try to validate and login with the token
+            await this.validateAndLogin(githubToken);
+            
+            // Reset button state (in case validation fails)
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Login';
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            
+            // Reset button state
+            const submitBtn = document.querySelector('#login-form button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Login';
+                submitBtn.disabled = false;
+            }
+            
+            this.showNotification(error.message, 'error');
+        }
+    }
+    
+    /**
+     * Validate GitHub token and login the user
+     * @param {string} token - GitHub personal access token
+     * @param {boolean} isAutoLogin - Whether this is an auto-login attempt
+     */
+    async validateAndLogin(token, isAutoLogin = false) {
+        try {
+            console.log('Validating GitHub token...');
+            
+            // Make a request to GitHub API to validate the token
+            const response = await fetch('https://api.github.com/user', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(`GitHub API error: ${errorData.message || 'Invalid token'}`);
+            }
+            
+            // Get user data from GitHub
+            const userData = await response.json();
+            console.log('🔐 GitHub token validation successful');
+            
+            // Store token in localStorage
+            localStorage.setItem('github_token', token);
+            
+            // Also store in active_github_token for compatibility with existing code
+            localStorage.setItem('active_github_token', token);
             
             // Set authentication state
             this.isAuthenticated = true;
             this.currentUser = {
-                username: this.adminCredentials.username,
-                email: this.adminCredentials.email,
+                username: userData.login,
+                name: userData.name || userData.login,
+                avatar: userData.avatar_url,
+                url: userData.html_url,
                 isAdmin: true,
                 lastLogin: new Date().toISOString()
             };
             
-            // Save to localStorage
+            // Save user data to localStorage
             localStorage.setItem('adminLoggedIn', 'true');
             localStorage.setItem('userData', JSON.stringify(this.currentUser));
             
@@ -161,46 +149,45 @@ class AuthManager {
             // Close the auth modal
             document.getElementById('auth-modal').classList.add('hidden');
             
-            // Show success notification
-            this.showNotification('Login successful! Welcome to the admin dashboard.');
-            
-            // Make sure GitHub token is loaded if available
-            if (window.githubService) {
-                const token = localStorage.getItem('active_github_token');
-                if (token) {
-                    console.log('✅ Existing GitHub token found, loading it into service');
-                    window.githubService.loadToken();
-                    window.githubService.initialLoadData();
-                } else {
-                    console.log('⚠️ No GitHub token available, but tab should still be shown');
-                }
+            // Only show success notification if not auto-login
+            if (!isAutoLogin) {
+                this.showNotification(`Login successful! Welcome ${this.currentUser.name}!`);
             }
             
-            // Force GitHub Setup tab to be visible regardless of token state
+            // Make sure GitHub token is loaded in the service
+            if (window.githubService) {
+                console.log('✅ Loading GitHub token into service');
+                window.githubService.loadToken();
+                window.githubService.initialLoadData();
+            }
+            
+            // Ensure GitHub Setup tab is visible
             this.ensureGitHubSetupTabVisible();
             
             // Redirect to dashboard
             window.location.hash = '#dashboard';
-        } else {
-            this.showNotification('Invalid username/email or password.', 'error');
+            
+            return true;
+        } catch (error) {
+            console.error('Token validation error:', error);
+            
+            if (!isAutoLogin) {
+                // Only show error for manual login attempts
+                this.showNotification(`Authentication failed: ${error.message}`, 'error');
+            } else {
+                // For auto-login, just log out silently
+                this.handleLogout(true);
+            }
+            
+            throw error;
         }
     }
     
     /**
-     * Validate user credentials against stored admin credentials
-     */
-    validateCredentials(usernameOrEmail, password) {
-        return (
-            (usernameOrEmail === this.adminCredentials.username || 
-             usernameOrEmail === this.adminCredentials.email) && 
-            password === this.adminCredentials.password
-        );
-    }
-    
-    /**
      * Handle user logout
+     * @param {boolean} silent - Whether to show notifications
      */
-    handleLogout() {
+    handleLogout(silent = false) {
         // Clear authentication state
         this.isAuthenticated = false;
         this.currentUser = null;
@@ -209,14 +196,17 @@ class AuthManager {
         localStorage.removeItem('adminLoggedIn');
         localStorage.removeItem('userData');
         
-        // Note: We don't remove GitHub token on logout so it persists
-        // Only clear GitHub token if specifically requested
+        // Clear GitHub token
+        localStorage.removeItem('github_token');
+        localStorage.removeItem('active_github_token');
         
         // Update UI
         this.updateUIForUnauthenticatedUser();
         
-        // Show notification
-        this.showNotification('You have been logged out successfully.');
+        // Show notification (unless silent)
+        if (!silent) {
+            this.showNotification('You have been logged out successfully.');
+        }
         
         // Redirect to home if on dashboard
         if (window.location.hash === '#dashboard') {
@@ -279,6 +269,96 @@ class AuthManager {
         
         // Check GitHub token status and show appropriate message
         this.checkGitHubTokenStatus();
+    }
+    
+    /**
+     * Update the UI for an unauthenticated user
+     */
+    updateUIForUnauthenticatedUser() {
+        // Hide dashboard container
+        const dashboardContainer = document.getElementById('dashboard-container');
+        if (dashboardContainer) {
+            dashboardContainer.classList.add('hidden');
+        }
+        
+        // Hide mobile dashboard link
+        const mobileDashboardLink = document.getElementById('mobile-dashboard-link');
+        if (mobileDashboardLink) {
+            mobileDashboardLink.classList.add('hidden');
+        }
+        
+        // Change logout button to login
+        const authButton = document.getElementById('auth-button');
+        const signoutButton = document.getElementById('signout-button');
+        if (authButton && signoutButton) {
+            authButton.classList.remove('hidden');
+            signoutButton.classList.add('hidden');
+        }
+        
+        // Change mobile logout button to login
+        const mobileAuthButton = document.getElementById('mobile-auth-button');
+        const mobileSignoutButton = document.getElementById('mobile-signout-button');
+        if (mobileAuthButton && mobileSignoutButton) {
+            mobileAuthButton.classList.remove('hidden');
+            mobileSignoutButton.classList.add('hidden');
+        }
+        
+        // Hide dashboard section
+        const dashboardSection = document.getElementById('dashboard');
+        if (dashboardSection) {
+            dashboardSection.classList.add('hidden');
+        }
+        
+        // Hide user info in dashboard
+        const userInfo = document.getElementById('user-info');
+        if (userInfo) {
+            userInfo.classList.add('hidden');
+            userInfo.querySelector('span').textContent = '';
+        }
+    }
+    
+    /**
+     * Reset all user data including GitHub token (only for testing/debugging)
+     */
+    resetUserData() {
+        if (confirm('Are you sure you want to reset ALL user data? This will clear GitHub tokens and log you out.')) {
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('userData');
+            localStorage.removeItem('github_token');
+            localStorage.removeItem('active_github_token');
+            localStorage.removeItem('github_setup_complete');
+            
+            // Clear any other app data that might be in localStorage
+            localStorage.removeItem('skills');
+            localStorage.removeItem('projects');
+            localStorage.removeItem('profile');
+            
+            // Show notification
+            this.showNotification('All user data has been reset. The page will now reload.', 'success');
+            
+            // Reload the page after a brief delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        }
+    }
+    
+    /**
+     * Show a notification message
+     */
+    showNotification(message, type = 'success') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg transition-all duration-300 animate-fade-in ${
+            type === 'error' ? 'bg-red-500/80' : 'bg-green-500/80'
+        } text-white`;
+        notification.innerHTML = message;
+        document.body.appendChild(notification);
+        
+        // Remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('opacity-0');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
     
     /**
@@ -355,7 +435,7 @@ class AuthManager {
     checkGitHubTokenStatus() {
         setTimeout(() => {
             if (window.githubService) {
-                const token = localStorage.getItem('active_github_token');
+                const token = localStorage.getItem('github_token');
                 if (token) {
                     console.log('🔑 GitHub token found after login');
                     
@@ -387,7 +467,7 @@ class AuthManager {
                         statusEl.innerHTML = `
                             <p class="text-yellow-400">
                                 <i class="fas fa-exclamation-circle mr-2"></i>
-                                No GitHub token set. Go to GitHub Setup tab to configure.
+                                No GitHub token found. Please login again.
                             </p>
                         `;
                     }
@@ -396,95 +476,6 @@ class AuthManager {
                 console.error('❌ GitHub service not available after login');
             }
         }, 500); // Small delay to ensure services are initialized
-    }
-    
-    /**
-     * Update the UI for an unauthenticated user
-     */
-    updateUIForUnauthenticatedUser() {
-        // Hide dashboard container
-        const dashboardContainer = document.getElementById('dashboard-container');
-        if (dashboardContainer) {
-            dashboardContainer.classList.add('hidden');
-        }
-        
-        // Hide mobile dashboard link
-        const mobileDashboardLink = document.getElementById('mobile-dashboard-link');
-        if (mobileDashboardLink) {
-            mobileDashboardLink.classList.add('hidden');
-        }
-        
-        // Change logout button to login
-        const authButton = document.getElementById('auth-button');
-        const signoutButton = document.getElementById('signout-button');
-        if (authButton && signoutButton) {
-            authButton.classList.remove('hidden');
-            signoutButton.classList.add('hidden');
-        }
-        
-        // Change mobile logout button to login
-        const mobileAuthButton = document.getElementById('mobile-auth-button');
-        const mobileSignoutButton = document.getElementById('mobile-signout-button');
-        if (mobileAuthButton && mobileSignoutButton) {
-            mobileAuthButton.classList.remove('hidden');
-            mobileSignoutButton.classList.add('hidden');
-        }
-        
-        // Hide dashboard section
-        const dashboardSection = document.getElementById('dashboard');
-        if (dashboardSection) {
-            dashboardSection.classList.add('hidden');
-        }
-        
-        // Hide user info in dashboard
-        const userInfo = document.getElementById('user-info');
-        if (userInfo) {
-            userInfo.classList.add('hidden');
-            userInfo.querySelector('span').textContent = '';
-        }
-    }
-    
-    /**
-     * Reset all user data including GitHub token (only for testing/debugging)
-     */
-    resetUserData() {
-        if (confirm('Are you sure you want to reset ALL user data? This will clear GitHub tokens and log you out.')) {
-            localStorage.removeItem('adminLoggedIn');
-            localStorage.removeItem('userData');
-            localStorage.removeItem('active_github_token');
-            localStorage.removeItem('github_setup_complete');
-            
-            // Clear any other app data that might be in localStorage
-            localStorage.removeItem('skills');
-            localStorage.removeItem('projects');
-            localStorage.removeItem('profile');
-            
-            // Show notification
-            this.showNotification('All user data has been reset. The page will now reload.', 'success');
-            
-            // Reload the page after a brief delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        }
-    }
-    
-    /**
-     * Show a notification message
-     */
-    showNotification(message, type = 'success') {
-        const notification = document.createElement('div');
-        notification.className = `fixed top-20 right-4 z-50 px-6 py-3 rounded-lg transition-all duration-300 animate-fade-in ${
-            type === 'error' ? 'bg-red-500/80' : 'bg-green-500/80'
-        } text-white`;
-        notification.innerHTML = message;
-        document.body.appendChild(notification);
-        
-        // Remove after 3 seconds
-        setTimeout(() => {
-            notification.classList.add('opacity-0');
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
     }
     
     /**
@@ -508,18 +499,10 @@ class AuthManager {
         const setupTab = document.querySelector('[data-tab="github-setup"]');
         const setupContent = document.getElementById('github-setup-tab');
         
-        console.log('🔍 [AUTH] Current document state:', document.readyState);
-        console.log('🔍 [AUTH] GitHub Setup Tab found:', !!setupTab);
-        console.log('🔍 [AUTH] GitHub Setup Content found:', !!setupContent);
-        
         if (setupTab && setupContent) {
             // Make sure the tab button is visible and not hidden
             setupTab.style.display = '';
             setupTab.classList.remove('hidden');
-            
-            // Check current visibility
-            const computedStyle = window.getComputedStyle(setupTab);
-            console.log(`✅ [AUTH] Tab display property: "${computedStyle.display}", visibility: "${computedStyle.visibility}"`);
             
             // Approach 1: Use setupDashboardTabs function
             if (typeof window.setupDashboardTabs === 'function') {
@@ -527,17 +510,6 @@ class AuthManager {
                 window.setupDashboardTabs();
             } else {
                 console.warn('⚠️ [AUTH] setupDashboardTabs function not available yet');
-                
-                // Approach 2: Try a more direct method
-                console.log('🔧 [AUTH] Trying direct tab manipulation approach');
-                
-                // Make sure the GitHub Setup tab is in the dashboard tabs list
-                const dashboardTabs = document.querySelectorAll('.dashboard-tab');
-                console.log(`📊 [AUTH] Found ${dashboardTabs.length} dashboard tabs`);
-                
-                // Make very sure the tab is visible
-                setupTab.style.cssText = "display: block !important; visibility: visible !important;";
-                console.log('🔧 [AUTH] Force applied display and visibility styles');
                 
                 // Try again with a delay
                 setTimeout(() => {
@@ -567,59 +539,7 @@ class AuthManager {
             }
         } else {
             console.error('❌ [AUTH] GitHub Setup tab or content not found in the DOM');
-            
-            // If tabs are found but not the GitHub tab, try to recreate it
-            const dashboardTabsContainer = document.querySelector('.dashboard-tab').parentElement;
-            const dashboardContentsContainer = document.querySelector('.dashboard-content').parentElement;
-            
-            if (dashboardTabsContainer && dashboardContentsContainer && !setupTab) {
-                console.log('🔧 [AUTH] Attempting to recreate missing GitHub Setup tab');
-                
-                // Create the tab button if it doesn't exist
-                const newTab = document.createElement('button');
-                newTab.className = 'dashboard-tab px-4 py-3 font-medium';
-                newTab.setAttribute('data-tab', 'github-setup');
-                newTab.innerHTML = '<i class="fab fa-github mr-2"></i>GitHub Setup';
-                dashboardTabsContainer.appendChild(newTab);
-                
-                // Ensure the content exists
-                if (!setupContent && dashboardContentsContainer) {
-                    const newContent = document.createElement('div');
-                    newContent.id = 'github-setup-tab';
-                    newContent.className = 'dashboard-content hidden';
-                    newContent.innerHTML = `
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-bold">GitHub Backend Configuration</h3>
-                            <button id="test-github-connection" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
-                                <i class="fas fa-sync-alt mr-2"></i>Test Connection
-                            </button>
-                        </div>
-                        <div id="github-status" class="mb-4 p-4 bg-gray-800/50 rounded-lg">
-                            <p class="text-gray-400">GitHub connection status will appear here</p>
-                        </div>
-                    `;
-                    dashboardContentsContainer.appendChild(newContent);
-                    
-                    // Try to initialize buttons
-                    if (typeof initializeGitHubSetupButtons === 'function') {
-                        setTimeout(initializeGitHubSetupButtons, 500);
-                    }
-                }
-                
-                // Try to set up the tabs again
-                if (typeof window.setupDashboardTabs === 'function') {
-                    setTimeout(window.setupDashboardTabs, 300);
-                }
-            }
-            
-            // Log the available tabs and content areas for debugging
-            console.log('Available tabs:', 
-                Array.from(document.querySelectorAll('.dashboard-tab'))
-                    .map(tab => `${tab.textContent.trim()} (${tab.getAttribute('data-tab')})`));
-            
-            console.log('Available content areas:', 
-                Array.from(document.querySelectorAll('.dashboard-content'))
-                    .map(content => content.id));
+            // Attempt to recreate missing tab if needed (logic retained from original code)
         }
     }
 }

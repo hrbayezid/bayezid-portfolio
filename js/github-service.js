@@ -93,9 +93,9 @@ class GitHubService {
         // Only load token for admin dashboard
         if (document.querySelector('#dashboard')) {
             // Load token from local storage
-        this.token = localStorage.getItem('active_github_token');
-        if (!this.token) {
-                console.log('No active GitHub token found - admin features will be limited');
+            this.token = localStorage.getItem('github_token');
+            if (!this.token) {
+                console.log('No GitHub token found - admin features will be limited');
             } else {
                 console.log('GitHub token found for admin operations');
             }
@@ -116,7 +116,7 @@ class GitHubService {
         try {
             this.token = token;
             // Store token in localStorage for persistence
-            localStorage.setItem('active_github_token', token);
+            localStorage.setItem('github_token', token);
             if (this.syncStatus) this.syncStatus.showStatus('GitHub token set successfully', 'success');
             
             // Validate the token after setting
@@ -124,7 +124,7 @@ class GitHubService {
             if (validation.valid) {
                 // Immediately load data after token validation
                 await this.initialLoadData();
-            return true;
+                return true;
             } else {
                 return false;
             }

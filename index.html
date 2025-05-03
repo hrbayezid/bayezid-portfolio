@@ -852,17 +852,24 @@
         <section id="skills" class="py-16 relative" aria-label="Skills overview">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-center mb-6 gradient-text animate-float font-display" data-editable="skills-title">My Skills</h2>
-                <p class="text-center text-gray-400 max-w-3xl mx-auto mb-12" data-editable="skills-subtitle">Here are my key skills in data science, analytics, and programming:</p>
+                <div class="flex justify-center mb-4">
+                    <p class="text-center text-gray-400 max-w-3xl mx-auto" data-editable="skills-subtitle">Here are my key skills in data science, analytics, and programming:</p>
+                    <button id="refresh-skills-btn" class="ml-4 px-3 py-1 bg-primary-500/80 text-white rounded-lg hover:bg-primary-600/80 text-sm transition-colors">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
+                </div>
                 
                 <!-- Dynamic skills grid that will be populated by SkillsManager -->
-                <div id="skills-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-                    <!-- Skills will be dynamically loaded here from localStorage -->
-                        </div>
-                
+                <div id="skills-section" class="max-w-6xl mx-auto">
+                    <div id="skills-grid" class="skills-container grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- Skills will be dynamically loaded here from GitHub -->
+                    </div>
+                </div>
+
                 <!-- Fallback static skills (will be hidden when dynamic content is loaded) -->
                 <div id="static-skills" class="hidden grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                     <!-- This section is now hidden -->
-                    </div>
+                </div>
                 
                 <!-- Add skill button for authenticated users -->
                 <div class="flex justify-center mt-8">
@@ -896,8 +903,11 @@
         <section id="projects" class="py-8 sm:py-16 relative" aria-label="Project showcase">
             <div class="container mx-auto px-4">
                 <h2 class="text-2xl sm:text-3xl font-bold text-center mb-8 sm:mb-12 gradient-text animate-float font-display" data-editable="projects-title">Projects</h2>
-                <div class="mb-10 max-w-4xl mx-auto">
-                    <p class="text-center text-gray-400" data-editable="projects-subtitle">A collection of my data analysis and visualization projects showcasing skills in data cleaning, exploration, and insight generation.</p>
+                <div class="flex justify-center mb-4">
+                    <p class="text-center text-gray-400 max-w-4xl mx-auto" data-editable="projects-subtitle">A collection of my data analysis and visualization projects showcasing skills in data cleaning, exploration, and insight generation.</p>
+                    <button id="refresh-projects-btn" class="ml-4 px-3 py-1 bg-primary-500/80 text-white rounded-lg hover:bg-primary-600/80 text-sm transition-colors">
+                        <i class="fas fa-sync-alt mr-1"></i>Refresh
+                    </button>
                 </div>
                 
                 <!-- Project filters -->
@@ -1215,6 +1225,9 @@
                 <button class="dashboard-tab px-4 py-3 font-medium" data-tab="settings">
                     <i class="fas fa-cog mr-2"></i>Settings
                 </button>
+                <button class="dashboard-tab px-4 py-3 font-medium" data-tab="github-setup">
+                    <i class="fab fa-github mr-2"></i>GitHub Setup
+                </button>
             </div>
             
             <!-- Dashboard Content Areas -->
@@ -1368,12 +1381,12 @@
 
                 <!-- Settings Tab -->
                 <div id="settings-tab" class="dashboard-content hidden">
-            <div class="flex justify-between items-center mb-6">
+                    <div class="flex justify-between items-center mb-6">
                         <h3 class="text-xl font-bold">Site Settings</h3>
                         <button id="save-settings" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
                             <i class="fas fa-save mr-2"></i>Save Changes
-                </button>
-            </div>
+                        </button>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="glass-effect rounded-xl p-6">
@@ -1382,21 +1395,21 @@
                                 <div>
                                     <label for="profile-name" class="block text-sm font-medium mb-1">Name</label>
                                     <input type="text" id="profile-name" class="w-full p-2 rounded-lg" placeholder="Your Name">
-                        </div>
-                        <div>
+                                </div>
+                                <div>
                                     <label for="profile-title" class="block text-sm font-medium mb-1">Professional Title</label>
                                     <input type="text" id="profile-title" class="w-full p-2 rounded-lg" placeholder="e.g. Data Analyst">
-                        </div>
+                                </div>
                                 <div>
                                     <label for="profile-intro" class="block text-sm font-medium mb-1">Short Introduction</label>
                                     <textarea id="profile-intro" class="w-full p-2 rounded-lg" rows="3" placeholder="A brief introduction about yourself"></textarea>
-                    </div>
+                                </div>
                                 <div>
                                     <label for="profile-image" class="block text-sm font-medium mb-1">Profile Image URL</label>
                                     <input type="text" id="profile-image" class="w-full p-2 rounded-lg" placeholder="https://example.com/profile.jpg">
                                 </div>
                             </form>
-                </div>
+                        </div>
                 
                         <div class="glass-effect rounded-xl p-6">
                             <h4 class="text-lg font-medium mb-4">Social Links</h4>
@@ -1406,19 +1419,19 @@
                                         <i class="fab fa-github mr-2"></i>GitHub URL
                                     </label>
                                     <input type="text" id="github-url" class="w-full p-2 rounded-lg" placeholder="https://github.com/yourusername">
-                    </div>
+                                </div>
                                 <div>
                                     <label for="linkedin-url" class="block text-sm font-medium mb-1">
                                         <i class="fab fa-linkedin mr-2"></i>LinkedIn URL
                                     </label>
                                     <input type="text" id="linkedin-url" class="w-full p-2 rounded-lg" placeholder="https://linkedin.com/in/yourusername">
-                </div>
+                                </div>
                                 <div>
                                     <label for="kaggle-url" class="block text-sm font-medium mb-1">
                                         <i class="fab fa-kaggle mr-2"></i>Kaggle URL
                                     </label>
                                     <input type="text" id="kaggle-url" class="w-full p-2 rounded-lg" placeholder="https://kaggle.com/yourusername">
-                    </div>
+                                </div>
                                 <div>
                                     <label for="medium-url" class="block text-sm font-medium mb-1">
                                         <i class="fab fa-medium mr-2"></i>Medium URL
@@ -1426,8 +1439,8 @@
                                     <input type="text" id="medium-url" class="w-full p-2 rounded-lg" placeholder="https://medium.com/@yourusername">
                                 </div>
                             </form>
+                        </div>
                     </div>
-                </div>
                 
                     <!-- Content Editor Section -->
                     <div class="glass-effect rounded-xl p-6 mt-6">
@@ -1435,10 +1448,80 @@
                         <p class="text-gray-400 mb-4">Enable edit mode to make changes directly to the front-end content of your portfolio.</p>
                         <button id="enable-edit-mode" class="px-4 py-2 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg text-white font-medium">
                             <i class="fas fa-edit mr-2"></i>Enable Edit Mode
-                </button>
+                        </button>
                         <p class="text-xs text-gray-400 mt-2">Note: This will allow you to edit text content directly on the main page. Changes will be saved to localStorage.</p>
-        </div>
-    </div>
+                    </div>
+                </div>
+
+                <!-- GitHub Setup Tab -->
+                <div id="github-setup-tab" class="dashboard-content hidden">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">GitHub Backend Configuration</h3>
+                        <button id="test-github-connection" class="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg">
+                            <i class="fas fa-sync-alt mr-2"></i>Test Connection
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="glass-effect rounded-xl p-6">
+                            <h4 class="text-lg font-medium mb-4">GitHub Repository Setup</h4>
+                            <form id="github-config-form" class="space-y-4">
+                                <div>
+                                    <label for="github-owner" class="block text-sm font-medium mb-1">Repository Owner</label>
+                                    <input type="text" id="github-owner" class="w-full p-2 rounded-lg" placeholder="e.g. hrbayezid" value="hrbayezid">
+                                    <p class="text-xs text-gray-400 mt-1">Your GitHub username</p>
+                                </div>
+                                <div>
+                                    <label for="github-repo" class="block text-sm font-medium mb-1">Repository Name</label>
+                                    <input type="text" id="github-repo" class="w-full p-2 rounded-lg" placeholder="e.g. bayezid-portfolio" value="bayezid-portfolio">
+                                    <p class="text-xs text-gray-400 mt-1">The name of your portfolio repository</p>
+                                </div>
+                                <div>
+                                    <label for="github-token" class="block text-sm font-medium mb-1">GitHub Personal Access Token</label>
+                                    <input type="password" id="github-token" class="w-full p-2 rounded-lg" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+                                    <p class="text-xs text-gray-400 mt-1">
+                                        Token with 'repo' scope. 
+                                        <a href="https://github.com/settings/tokens/new" target="_blank" class="text-primary-400 hover:underline">
+                                            Create one here
+                                        </a>
+                                    </p>
+                                </div>
+                                <div>
+                                    <label for="github-branch" class="block text-sm font-medium mb-1">Branch Name</label>
+                                    <input type="text" id="github-branch" class="w-full p-2 rounded-lg" placeholder="main" value="main">
+                                    <p class="text-xs text-gray-400 mt-1">The branch to store your data (usually 'main')</p>
+                                </div>
+                                <button type="submit" id="save-github-config" class="w-full py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg">
+                                    <i class="fas fa-save mr-2"></i>Save Configuration
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="glass-effect rounded-xl p-6">
+                            <h4 class="text-lg font-medium mb-4">Status & Actions</h4>
+                            <div id="github-status" class="mb-4 p-4 bg-gray-800/50 rounded-lg">
+                                <p class="text-gray-400">GitHub connection status will appear here</p>
+                            </div>
+                            
+                            <div class="space-y-3">
+                                <button id="init-github-backend" class="w-full py-2 bg-gradient-to-r from-primary-500 to-purple-500 hover:from-primary-600 hover:to-purple-600 text-white rounded-lg transition">
+                                    <i class="fas fa-cloud-upload-alt mr-2"></i>Initialize GitHub Backend
+                                </button>
+                                
+                                <button id="migrate-to-github" class="w-full py-2 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white rounded-lg transition">
+                                    <i class="fas fa-file-export mr-2"></i>Migrate Local Data to GitHub
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-effect rounded-xl p-6">
+                        <h4 class="text-lg font-medium mb-4">Setup Progress</h4>
+                        <div id="github-setup-log" class="h-64 overflow-y-auto p-4 bg-gray-800/50 rounded-lg font-mono text-sm">
+                            <p class="text-gray-400">Setup logs will appear here...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -1451,73 +1534,45 @@
     <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center hidden">
         <div class="glass-effect rounded-xl w-full max-w-md mx-4 p-6 animate-scale-in">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold font-display">Account Access</h3>
+                <h3 class="text-xl font-bold font-display">GitHub Authentication</h3>
                 <button class="close-modal text-gray-400 hover:text-white">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             
-            <!-- Auth Tabs -->
-            <div class="flex border-b border-gray-700 mb-6">
-                <button id="login-tab" class="px-4 py-2 font-medium active-tab">Login</button>
-                <button id="signup-tab" class="px-4 py-2 font-medium text-gray-400">Sign Up</button>
-            </div>
-            
-            <!-- Login Form -->
+            <!-- GitHub Token Login Form -->
             <form id="login-form" class="space-y-4">
                 <div>
-                    <label for="login-username" class="block text-sm font-medium mb-1">Username or Email</label>
-                    <input type="text" id="login-username" name="username" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                </div>
-                
-                <div class="relative">
-                    <label for="login-password" class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="login-password" name="password" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                    <button type="button" class="password-toggle absolute right-3 top-9 text-gray-400 hover:text-white">
-                        <i class="fas fa-eye"></i>
-                    </button>
+                    <label for="github-token-input" class="block text-sm font-medium mb-2">GitHub Personal Access Token</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                            <i class="fab fa-github"></i>
+                        </span>
+                        <input type="password" id="github-token-input" name="token" 
+                            class="w-full p-2.5 pl-10 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" 
+                            placeholder="Enter your GitHub token" required>
+                        <button type="button" class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-400 mt-2">
+                        A Personal Access Token with "repo" scope is required.
+                        <a href="https://github.com/settings/tokens/new" target="_blank" class="text-primary-400 hover:underline">
+                            Create one here →
+                        </a>
+                    </p>
                 </div>
                 
                 <div class="flex items-center justify-between">
                     <div class="flex items-center">
-                        <input id="remember-me" type="checkbox" class="h-4 w-4 text-primary-500 rounded bg-white/10 border-white/20">
-                        <label for="remember-me" class="ml-2 block text-sm text-gray-400">Remember me</label>
+                        <input id="remember-token" type="checkbox" class="h-4 w-4 text-primary-500 rounded bg-white/10 border-white/20">
+                        <label for="remember-token" class="ml-2 block text-sm text-gray-400">Remember token</label>
                     </div>
-                    <button type="button" onclick="window.authManager?.resetUserData()" class="text-sm text-red-500 hover:text-red-400">Reset Credentials</button>
+                    <button type="button" onclick="window.authManager?.resetUserData()" class="text-sm text-red-500 hover:text-red-400">Reset Data</button>
                 </div>
                 
                 <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
-                    <i class="fas fa-sign-in-alt mr-2"></i>Login
-                </button>
-            </form>
-            
-            <!-- Sign Up Form -->
-            <form id="signup-form" class="space-y-4 hidden">
-                <div>
-                    <label for="signup-name" class="block text-sm font-medium mb-1">Name</label>
-                    <input type="text" id="signup-name" name="name" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                </div>
-                
-                <div>
-                    <label for="signup-username" class="block text-sm font-medium mb-1">Username</label>
-                    <input type="text" id="signup-username" name="username" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                </div>
-                
-                <div>
-                    <label for="signup-email" class="block text-sm font-medium mb-1">Email</label>
-                    <input type="email" id="signup-email" name="email" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                </div>
-                
-                <div class="relative">
-                    <label for="signup-password" class="block text-sm font-medium mb-1">Password</label>
-                    <input type="password" id="signup-password" name="password" class="w-full p-2.5 bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500" required>
-                    <button type="button" class="password-toggle absolute right-3 top-9 text-gray-400 hover:text-white">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </div>
-                
-                <button type="submit" class="w-full py-2.5 bg-gradient-to-r from-primary-500 to-accent-500 rounded-lg hover:from-primary-600 hover:to-accent-600 transition duration-300 text-white font-medium shadow-highlight-sm">
-                    <i class="fas fa-user-plus mr-2"></i>Create Account
+                    <i class="fas fa-sign-in-alt mr-2"></i>Login with GitHub
                 </button>
             </form>
         </div>
@@ -1534,45 +1589,90 @@
     </button>
 
     <!-- Scripts -->
-    <script src="js/auth.js"></script>
     <script src="js/github-service.js"></script>
-    <script src="js/github-storage.js"></script>
+    <script src="js/sync-status.js"></script>
+    <script src="js/setup-github-backend.js"></script>
     <script src="js/main.js"></script>
+
+    <!-- Load feature-specific scripts after -->
+    <script src="js/auth.js"></script>
     <script src="js/contact.js"></script>
     <script src="js/editor.js"></script>
-    <script src="js/setup-github-backend.js"></script>
+    <script src="js/dashboard-debug.js"></script>
     
+    <!-- Initialize dashboard functionality -->
     <script>
-        // Theme switcher
-        const toggleTheme = () => {
-            const body = document.body;
-            body.classList.toggle('dark');
-            const isDarkMode = body.classList.contains('dark');
-            localStorage.setItem('dark-mode', isDarkMode);
-            
-            // Update theme buttons text and icon
-            const themeButtons = document.querySelectorAll('.theme-toggle');
-            themeButtons.forEach(button => {
-                const icon = button.querySelector('i');
-                if (isDarkMode) {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                    button.setAttribute('title', 'Switch to light mode');
-                    button.setAttribute('aria-label', 'Switch to light mode');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                    button.setAttribute('title', 'Switch to dark mode');
-                    button.setAttribute('aria-label', 'Switch to dark mode');
-                }
-            });
-        };
-
-        // Set dark mode as default
+        // Manual initialization to ensure DOM is fully loaded
         document.addEventListener('DOMContentLoaded', function() {
+            // Theme switcher
+            const toggleTheme = () => {
+                const body = document.body;
+                body.classList.toggle('dark');
+                const isDarkMode = body.classList.contains('dark');
+                localStorage.setItem('dark-mode', isDarkMode);
+                
+                // Update theme buttons text and icon
+                const themeButtons = document.querySelectorAll('.theme-toggle');
+                themeButtons.forEach(button => {
+                    const icon = button.querySelector('i');
+                    if (isDarkMode) {
+                        icon.classList.remove('fa-moon');
+                        icon.classList.add('fa-sun');
+                        button.setAttribute('title', 'Switch to light mode');
+                        button.setAttribute('aria-label', 'Switch to light mode');
+                    } else {
+                        icon.classList.remove('fa-sun');
+                        icon.classList.add('fa-moon');
+                        button.setAttribute('title', 'Switch to dark mode');
+                        button.setAttribute('aria-label', 'Switch to dark mode');
+                    }
+                });
+            };
+            
             // Force dark mode
             document.body.classList.add('dark');
             localStorage.setItem('dark-mode', 'true');
+            
+            // Manual setup for dashboard tabs if not already set up
+            if(typeof setupDashboardTabs === 'function') {
+                console.log('Setting up dashboard tabs manually');
+                setupDashboardTabs();
+            } else {
+                console.error('setupDashboardTabs function not found');
+            }
+            
+            // Auto-fix dashboard tabs after a delay to make sure everything is loaded
+            setTimeout(function() {
+                console.log('Auto-fixing dashboard tabs');
+                if (typeof window.fixDashboardTabs === 'function') {
+                    window.fixDashboardTabs();
+                }
+                
+                // Add click handlers directly to tabs (redundant but reliable approach)
+                document.querySelectorAll('.dashboard-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        const targetId = this.getAttribute('data-tab');
+                        if (!targetId) return;
+                        
+                        // Update active tabs
+                        document.querySelectorAll('.dashboard-tab').forEach(t => {
+                            t.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        
+                        // Hide all content
+                        document.querySelectorAll('.dashboard-content').forEach(content => {
+                            content.classList.add('hidden');
+                        });
+                        
+                        // Show target content
+                        const targetContent = document.getElementById(targetId + '-tab');
+                        if (targetContent) {
+                            targetContent.classList.remove('hidden');
+                        }
+                    });
+                });
+            }, 500);
         });
     </script>
 </body>

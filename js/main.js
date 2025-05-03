@@ -894,90 +894,67 @@ document.addEventListener('DOMContentLoaded', () => {
         // Always ensure GitHub setup tab is visible after login
         ensureGitHubSetupTabIsVisible();
     } else {
-        console.log('📄 Public page detected, loading portfolio data');
-        
-        // Load portfolio data for public visitors
+        console.log('Public page detected, setting up content filters');
+    }
+    
+    // Set up mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenuToggle && mobileMenu) {
+        mobileMenuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+    
+    // Setup password toggle functionality for GitHub token inputs
+    const passwordToggles = document.querySelectorAll('.password-toggle');
+    passwordToggles.forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const input = this.parentElement.querySelector('input[type="password"]');
+            if (input) {
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                
+                // Toggle eye icon
+                const icon = this.querySelector('i');
+                if (icon) {
+                    if (type === 'password') {
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                }
+            }
+        });
+    });
+    
+    // Set up content filters
+    setupContentFilters();
+    
+    // Load profile settings into settings form
+    loadProfileSettings();
+    
+    // Set up refresh buttons
+    setupRefreshButtons();
+    
+    // Initialize back to top button
+    initBackToTopButton();
+    
+    // Check URL params for actions
+    checkUrlParams();
+    
+    // Load public data for non-dashboard pages
+    if (!document.querySelector('#dashboard')) {
         loadPublicPortfolioData();
     }
     
-    // Load profile settings
-    loadProfileSettings();
-    
-    // Setup mobile menu toggle
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-    if (mobileMenuButton && mobileMenu) {
-        mobileMenuButton.addEventListener('click', () => {
-            mobileMenu.classList.toggle('hidden');
-            const expanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
-            mobileMenuButton.setAttribute('aria-expanded', !expanded);
-        });
+    // Setup enable edit mode button
+    const enableEditModeBtn = document.getElementById('enable-edit-mode');
+    if (enableEditModeBtn) {
+        enableEditModeBtn.addEventListener('click', enableEditMode);
     }
-    
-    // Back to top button
-    const backToTopButton = document.getElementById('back-to-top');
-    if (backToTopButton) {
-        // Show button when user scrolls down
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                backToTopButton.classList.remove('hidden');
-            } else {
-                backToTopButton.classList.add('hidden');
-            }
-        });
-        
-        // Scroll to top when clicked
-        backToTopButton.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-    
-    // Setup refresh buttons
-    setupRefreshButtons();
-    
-    // Set up refresh skills button on main page
-    const refreshSkillsBtn = document.getElementById('refresh-skills-btn');
-    if (refreshSkillsBtn) {
-        refreshSkillsBtn.addEventListener('click', async () => {
-            if (window.githubService) {
-                // Show loading state
-                refreshSkillsBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i>Loading...';
-                refreshSkillsBtn.disabled = true;
-                
-                try {
-                    await window.githubService.refreshSkillsDisplay();
-                    
-                    // Show success via syncStatus if available
-                    if (window.syncStatus) {
-                        window.syncStatus.showStatus('Skills refreshed from GitHub successfully', 'success');
-                    }
-                } catch (error) {
-                    console.error('Error refreshing skills:', error);
-                    
-                    // Show error via syncStatus if available 
-                    if (window.syncStatus) {
-                        window.syncStatus.showStatus('Error refreshing skills: ' + error.message, 'error');
-                    }
-                } finally {
-                    // Reset button state
-                    refreshSkillsBtn.innerHTML = '<i class="fas fa-sync-alt mr-1"></i>Refresh';
-                    refreshSkillsBtn.disabled = false;
-                }
-            } else {
-                // Show error if GitHub service is not available
-                console.error('GitHub service not available');
-                
-                // Add alert if syncStatus is not available
-                if (window.syncStatus) {
-                    window.syncStatus.showStatus('GitHub service not available', 'error');
-        } else {
-                    alert('GitHub service not available. Please configure GitHub in dashboard.');
-                }
-            }
-        });
-    }
-    
-    console.log('Portfolio initialization complete');
 });
 
 // Make sure GitHub Setup tab is visible after login
@@ -2088,4 +2065,53 @@ function setupRefreshButtons() {
             container.prepend(refreshBtn);
         }
     });
+}
+
+// Initialize back to top button functionality
+function initBackToTopButton() {
+    const backToTopButton = document.getElementById('back-to-top');
+    if (backToTopButton) {
+        // Show button when user scrolls down
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTopButton.classList.remove('hidden');
+            } else {
+                backToTopButton.classList.add('hidden');
+            }
+        });
+        
+        // Scroll to top when clicked
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+}
+
+// Check URL parameters for special actions
+function checkUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Check for edit mode
+    if (urlParams.has('edit') && urlParams.get('edit') === 'true') {
+        console.log('Edit mode detected in URL');
+        
+        // Initialize editor if available
+        if (typeof initializeEditor === 'function') {
+            initializeEditor();
+        } else {
+            console.warn('Editor module not loaded');
+        }
+    }
+    
+    // Check for tab selection
+    if (urlParams.has('tab')) {
+        const tabId = urlParams.get('tab');
+        console.log(`Tab selection detected in URL: ${tabId}`);
+        
+        // Find and activate the tab
+        const tabButton = document.querySelector(`[data-tab="${tabId}"]`);
+        if (tabButton) {
+            tabButton.click();
+        }
+    }
 }

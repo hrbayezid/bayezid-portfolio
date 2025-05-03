@@ -195,7 +195,7 @@ class GitHubBackendSetup {
     async checkTokenStatus() {
         console.log('🔄 Checking GitHub token status...');
         
-        const token = localStorage.getItem('active_github_token');
+        const token = localStorage.getItem('github_token');
         const statusElement = document.getElementById('github-status');
         
         if (!token) {
@@ -432,25 +432,39 @@ class GitHubBackendSetup {
         }
         
         // Validate token first
-            const validation = await this.githubService.validateToken();
-            if (!validation.valid) {
+        const validation = await this.githubService.validateToken();
+        if (!validation.valid) {
             this.log(`GitHub token not valid: ${validation.message}`, 'error');
             return;
         }
         
         if (!validation.repoAccess) {
-            this.log('WARNING: No repository access. Some operations may fail.', 'warning');
+            this.log('WARNING: No repository access. Operations may fail. Please make sure your token has "repo" scope.', 'warning');
+            
+            // Show a more detailed error message
+            this.log(`Your token must have access to repository: ${this.githubService.owner}/${this.githubService.repo}`, 'warning');
+            this.log('Check that the repository exists and your token has the correct permissions.', 'warning');
+            
+            // Prompt to verify repo name and owner
+            const confirmContinue = confirm(`Repository access issue detected.\n\nPlease confirm:\n1. The repository ${this.githubService.owner}/${this.githubService.repo} exists\n2. Your token has 'repo' scope\n3. You have write access to this repository\n\nContinue anyway?`);
+            
+            if (!confirmContinue) {
+                this.log('Initialization cancelled by user.', 'error');
+                return;
+            }
+            
+            this.log('Continuing with initialization despite potential permission issues...', 'warning');
         }
         
         this.log(`Initializing GitHub backend for ${this.githubService.owner}/${this.githubService.repo}...`);
         
         // Create necessary files
-            for (const file of this.dataFiles) {
-                try {
+        for (const file of this.dataFiles) {
+            try {
                 // Check if file exists
                 const exists = await this.githubService.checkFileExists(file.path);
                 
-                    if (exists) {
+                if (exists) {
                     this.log(`File ${file.path} already exists, skipping.`);
                 } else {
                     this.log(`Creating ${file.path}...`);
@@ -460,10 +474,10 @@ class GitHubBackendSetup {
                         `Initialize ${file.path} via Portfolio Setup`
                     );
                     
-                    if (result.success) {
+                    if (result) {
                         this.log(`Created ${file.path} successfully`, 'success');
                     } else {
-                        this.log(`Failed to create ${file.path}: ${result.message}`, 'error');
+                        this.log(`Failed to create ${file.path}`, 'error');
                     }
                 }
             } catch (error) {
@@ -490,7 +504,7 @@ class GitHubBackendSetup {
                     this.githubService.refreshProjectsDisplay()
                 ]);
                 this.log('Data display refreshed from GitHub', 'success');
-        } catch (error) {
+            } catch (error) {
                 this.log(`Error refreshing data: ${error.message}`, 'error');
             }
         }
@@ -565,7 +579,7 @@ class GitHubBackendSetup {
                     this.githubService.refreshProjectsDisplay()
                 ]);
                 this.log('Data display refreshed from GitHub', 'success');
-        } catch (error) {
+            } catch (error) {
                 this.log(`Error refreshing data: ${error.message}`, 'error');
             }
         }
