@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "2",
+    "name": "Data Analysis",
+    "category": "data-analysis",
+    "proficiency": 85,
+    "icon": "fas fa-chart-bar",
+    "createdAt": "2023-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "3",
+    "name": "Machine Learning",
+    "category": "machine-learning",
+    "proficiency": 75,
+    "icon": "fas fa-brain",
+    "createdAt": "2023-01-03T00:00:00.000Z"
+  },
+  {
+    "id": "4",
+    "name": "JavaScript",
+    "category": "programming",
+    "proficiency": 80,
+    "icon": "fab fa-js",
+    "createdAt": "2023-01-04T00:00:00.000Z"
+  },
+  {
+    "id": "5",
+    "name": "Data Visualization",
+    "category": "data-visualization",
+    "proficiency": 85,
+    "icon": "fas fa-chart-pie",
+    "createdAt": "2023-01-05T00:00:00.000Z"
+  }
+]
