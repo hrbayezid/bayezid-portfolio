@@ -1,19 +1,19 @@
 [
   {
-    "id": "1",
-    "title": "Customer Churn Analysis",
-    "category": "analysis",
-    "description": "Used Python and pandas to analyze customer churn for a telecom company. Identified key factors leading to customer attrition.",
-    "image": "https://via.placeholder.com/640x360.png?text=Customer+Churn+Analysis",
-    "createdAt": "2023-01-01T00:00:00.000Z"
-  },
-  {
     "id": "2",
     "title": "Sales Dashboard",
     "category": "dashboard",
     "description": "Created an interactive sales dashboard using Tableau to visualize quarterly sales performance across regions.",
     "image": "https://via.placeholder.com/640x360.png?text=Sales+Dashboard",
     "createdAt": "2023-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "3",
+    "title": "Sentiment Analysis",
+    "category": "ml",
+    "description": "Built a machine learning model to analyze customer review sentiment using NLP techniques and scikit-learn.",
+    "image": "https://via.placeholder.com/640x360.png?text=Sentiment+Analysis",
+    "createdAt": "2023-01-03T00:00:00.000Z"
   },
   {
     "id": "4",
