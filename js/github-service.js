@@ -9,6 +9,7 @@ class GitHubService {
         this.fallbackToLocalStorage = false; // Disabled localStorage fallback
         this.currentDataSource = null; // Will track current source for debugging ('github-api' or 'github-raw')
         this.syncStatus = null; // Will be populated after DOM is ready
+        this.lastUpdated = new Date(); // Track last data update time
         
         // Wait for DOM to be ready to access syncStatus
         if (document.readyState === 'loading') {
@@ -47,6 +48,7 @@ class GitHubService {
             ]);
             
             console.log('✅ Initial data loaded successfully');
+            this.updateLastUpdatedDisplay();
             
             // Only then validate token if in dashboard (admin) mode
             if (this.token) {
@@ -88,12 +90,21 @@ class GitHubService {
     loadToken() {
         // Only load token for admin dashboard
         if (document.querySelector('#dashboard')) {
-            // Load token from local storage
+            // First try to get token from AuthManager (in-memory)
+            if (window.authManager && typeof window.authManager.getSessionToken === 'function') {
+                this.token = window.authManager.getSessionToken();
+                if (this.token) {
+                    console.log('GitHub token loaded from auth manager session');
+                    return;
+                }
+            }
+            
+            // Fall back to localStorage if no in-memory token
             this.token = localStorage.getItem('github_token');
             if (!this.token) {
                 console.log('No GitHub token found - admin features will be limited');
             } else {
-                console.log('GitHub token found for admin operations');
+                console.log('GitHub token loaded from localStorage');
             }
         } else {
             // For public pages, clear any existing token
@@ -120,7 +131,7 @@ class GitHubService {
             if (validation.valid) {
                 // Immediately load data after token validation
                 await this.initialLoadData();
-                return true;
+            return true;
             } else {
                 return false;
             }
@@ -331,7 +342,7 @@ class GitHubService {
                         };
                         
                         const response = await fetch(apiUrl, { headers });
-                        
+                    
                         if (!response.ok) {
                             throw new Error(`GitHub API fetch failed: ${response.status} ${response.statusText}`);
                         }
@@ -378,7 +389,7 @@ class GitHubService {
                 if (this.syncStatus) {
                     this.syncStatus.fetchFailed(path, error);
                     this.syncStatus.showStatus(`GitHub Error: ${error.message}`, 'error', 10000);
-                }
+            }
             }
             
             // Return empty data structure based on path
@@ -887,8 +898,8 @@ class GitHubService {
                 if (fileData.status === 404) {
                     console.log(`File ${path} not found, nothing to delete`);
                     return true;
-                }
-                
+            }
+            
                 const error = await fileData.json();
                 if (this.syncStatus) this.syncStatus.saveFailed(path, error);
                 
@@ -1018,6 +1029,97 @@ class GitHubService {
             }
             
             return {};
+        }
+    }
+
+    // Force refresh all data and clear any caches
+    async forceRefresh() {
+        console.log('🔄 Force refreshing all data from GitHub...');
+        
+        if (this.syncStatus) {
+            this.syncStatus.showStatus('Force refreshing all data...', 'info');
+        }
+        
+        // Clear any cached data in the API client
+        if (window.apiClient && typeof window.apiClient.clearCache === 'function') {
+            window.apiClient.clearCache();
+        }
+        
+        // Update the last updated timestamp
+        this.lastUpdated = new Date();
+        
+        try {
+            const results = await Promise.all([
+                this.refreshSkillsDisplay(),
+                this.refreshProjectsDisplay(),
+                this.loadProfileData()
+            ]);
+            
+            // Refresh the public view as well if we're not in the dashboard
+            if (!document.querySelector('#dashboard') && typeof loadPublicPortfolioData === 'function') {
+                await loadPublicPortfolioData();
+            }
+            
+            this.updateLastUpdatedDisplay();
+            
+            if (this.syncStatus) {
+                this.syncStatus.showStatus('All data refreshed successfully', 'success');
+            }
+            
+            return results;
+        } catch (error) {
+            console.error('Error during force refresh:', error);
+            
+            if (this.syncStatus) {
+                this.syncStatus.showStatus('Error refreshing data: ' + error.message, 'error');
+            }
+            
+            return null;
+        }
+    }
+    
+    // Update the last updated timestamp
+    updateLastUpdatedDisplay() {
+        const formatted = this.lastUpdated.toLocaleString();
+        const lastUpdatedElements = document.querySelectorAll('.last-updated-timestamp');
+        
+        if (lastUpdatedElements.length === 0) {
+            // Create last updated element if it doesn't exist
+            const timestamp = document.createElement('div');
+            timestamp.className = 'last-updated-timestamp text-xs text-gray-400 text-center mt-2';
+            timestamp.innerHTML = `Last updated: ${formatted} <button class="refresh-data-btn ml-2 text-primary-400 hover:text-primary-300"><i class="fas fa-sync-alt"></i></button>`;
+            
+            // Find sections to add timestamp to
+            const sections = ['skills-section', 'projects-section'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    const clone = timestamp.cloneNode(true);
+                    section.appendChild(clone);
+                    
+                    // Add refresh button click handler
+                    const refreshBtn = clone.querySelector('.refresh-data-btn');
+                    if (refreshBtn) {
+                        refreshBtn.addEventListener('click', () => this.forceRefresh());
+                    }
+                }
+            });
+        } else {
+            // Update existing timestamp elements
+            lastUpdatedElements.forEach(el => {
+                const timestampText = el.childNodes[0];
+                if (timestampText) {
+                    timestampText.nodeValue = `Last updated: ${formatted} `;
+                } else {
+                    el.innerHTML = `Last updated: ${formatted} <button class="refresh-data-btn ml-2 text-primary-400 hover:text-primary-300"><i class="fas fa-sync-alt"></i></button>`;
+                    
+                    // Add refresh button click handler
+                    const refreshBtn = el.querySelector('.refresh-data-btn');
+                    if (refreshBtn) {
+                        refreshBtn.addEventListener('click', () => this.forceRefresh());
+                    }
+                }
+            });
         }
     }
 }

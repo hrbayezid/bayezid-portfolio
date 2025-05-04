@@ -432,8 +432,8 @@ class GitHubBackendSetup {
         }
         
         // Validate token first
-        const validation = await this.githubService.validateToken();
-        if (!validation.valid) {
+            const validation = await this.githubService.validateToken();
+            if (!validation.valid) {
             this.log(`GitHub token not valid: ${validation.message}`, 'error');
             return;
         }
@@ -459,12 +459,12 @@ class GitHubBackendSetup {
         this.log(`Initializing GitHub backend for ${this.githubService.owner}/${this.githubService.repo}...`);
         
         // Create necessary files
-        for (const file of this.dataFiles) {
-            try {
+            for (const file of this.dataFiles) {
+                try {
                 // Check if file exists
                 const exists = await this.githubService.checkFileExists(file.path);
                 
-                if (exists) {
+                    if (exists) {
                     this.log(`File ${file.path} already exists, skipping.`);
                 } else {
                     this.log(`Creating ${file.path}...`);
@@ -504,7 +504,7 @@ class GitHubBackendSetup {
                     this.githubService.refreshProjectsDisplay()
                 ]);
                 this.log('Data display refreshed from GitHub', 'success');
-            } catch (error) {
+        } catch (error) {
                 this.log(`Error refreshing data: ${error.message}`, 'error');
             }
         }
@@ -579,7 +579,7 @@ class GitHubBackendSetup {
                     this.githubService.refreshProjectsDisplay()
                 ]);
                 this.log('Data display refreshed from GitHub', 'success');
-            } catch (error) {
+        } catch (error) {
                 this.log(`Error refreshing data: ${error.message}`, 'error');
             }
         }

@@ -7,6 +7,7 @@ class AuthManager {
     constructor() {
         this.isAuthenticated = false;
         this.currentUser = null;
+        this.sessionToken = null; // In-memory token storage
         
         // Initialize authentication state
         this.init();
@@ -53,6 +54,25 @@ class AuthManager {
                 document.getElementById('auth-modal').classList.add('hidden');
             });
         });
+        
+        // Add handler for password toggle button
+        const passwordToggleButtons = document.querySelectorAll('.password-toggle');
+        passwordToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const input = button.parentElement.querySelector('input');
+                if (input) {
+                    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                    input.setAttribute('type', type);
+                    
+                    // Toggle icon
+                    const icon = button.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fa-eye');
+                        icon.classList.toggle('fa-eye-slash');
+                    }
+                }
+            });
+        });
     }
     
     /**
@@ -75,10 +95,10 @@ class AuthManager {
             }
             
             // Try to validate and login with the token
-            await this.validateAndLogin(githubToken);
+            const success = await this.validateAndLogin(githubToken);
             
-            // Reset button state (in case validation fails)
-            if (submitBtn) {
+            // Reset button state if validation fails
+            if (!success && submitBtn) {
                 submitBtn.innerHTML = '<i class="fas fa-sign-in-alt mr-2"></i>Login';
                 submitBtn.disabled = false;
             }
@@ -100,6 +120,7 @@ class AuthManager {
      * Validate GitHub token and login the user
      * @param {string} token - GitHub personal access token
      * @param {boolean} isAutoLogin - Whether this is an auto-login attempt
+     * @returns {Promise<boolean>} - Whether login was successful
      */
     async validateAndLogin(token, isAutoLogin = false) {
         try {
@@ -122,11 +143,17 @@ class AuthManager {
             const userData = await response.json();
             console.log('🔐 GitHub token validation successful');
             
-            // Store token in localStorage
-            localStorage.setItem('github_token', token);
+            // Store token in memory for this session
+            this.sessionToken = token;
             
-            // Also store in active_github_token for compatibility with existing code
-            localStorage.setItem('active_github_token', token);
+            // If "remember token" is checked, also store in localStorage
+            const rememberToken = document.getElementById('remember-token')?.checked;
+            if (rememberToken) {
+                localStorage.setItem('github_token', token);
+                console.log('Token saved to localStorage for persistence');
+            } else {
+                console.log('Token kept in memory only for this session');
+            }
             
             // Set authentication state
             this.isAuthenticated = true;
@@ -139,9 +166,13 @@ class AuthManager {
                 lastLogin: new Date().toISOString()
             };
             
-            // Save user data to localStorage
+            // Save minimal user data to localStorage
             localStorage.setItem('adminLoggedIn', 'true');
-            localStorage.setItem('userData', JSON.stringify(this.currentUser));
+            localStorage.setItem('userData', JSON.stringify({
+                username: this.currentUser.username,
+                name: this.currentUser.name,
+                lastLogin: this.currentUser.lastLogin
+            }));
             
             // Update UI
             this.updateUIForAuthenticatedUser();
@@ -157,7 +188,7 @@ class AuthManager {
             // Make sure GitHub token is loaded in the service
             if (window.githubService) {
                 console.log('✅ Loading GitHub token into service');
-                window.githubService.loadToken();
+                window.githubService.token = this.sessionToken; // Directly set the token
                 window.githubService.initialLoadData();
             }
             
@@ -179,8 +210,16 @@ class AuthManager {
                 this.handleLogout(true);
             }
             
-            throw error;
+            return false;
         }
+    }
+    
+    /**
+     * Get the current session token
+     * @returns {string|null} - The current session token or null if not authenticated
+     */
+    getSessionToken() {
+        return this.sessionToken;
     }
     
     /**
@@ -191,14 +230,12 @@ class AuthManager {
         // Clear authentication state
         this.isAuthenticated = false;
         this.currentUser = null;
+        this.sessionToken = null;
         
         // Clear localStorage authentication
         localStorage.removeItem('adminLoggedIn');
         localStorage.removeItem('userData');
-        
-        // Clear GitHub token
         localStorage.removeItem('github_token');
-        localStorage.removeItem('active_github_token');
         
         // Update UI
         this.updateUIForUnauthenticatedUser();

@@ -160,6 +160,21 @@ function initializeApiClient() {
         cacheTTL: 300000, // Increase to 5 minutes (300000ms) to reduce GitHub API calls
         maxRetries: 2,   // Maximum number of retry attempts
         
+        // Clear cache for all endpoints or a specific endpoint
+        clearCache: (endpoint = null) => {
+            if (endpoint) {
+                // Clear cache for specific endpoint
+                console.log(`🧹 Clearing cache for endpoint: ${endpoint}`);
+                delete window.apiClient.cache[endpoint];
+                delete window.apiClient.lastFetchTime[endpoint];
+            } else {
+                // Clear all cache
+                console.log('🧹 Clearing all API cache');
+                window.apiClient.cache = {};
+                window.apiClient.lastFetchTime = {};
+            }
+        },
+        
         get: async (endpoint) => {
             try {
                 // Check in-memory cache first
@@ -177,14 +192,14 @@ function initializeApiClient() {
                 // Add timestamp for cache busting (prevent GitHub Pages caching)
                 const cacheBuster = `?v=${now}`;
                 
-                // For public visitors, prioritize direct raw GitHub URL fetch which works without authentication
+                // Define GitHub info
+                const owner = 'hrbayezid';
+                const repo = 'bayezid-portfolio';
+                const dataPath = `data${endpoint.replace('/api', '')}.json`;
+                const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
+                
+                // For public visitors, always use direct raw GitHub URL fetch which works without authentication
                 if (!document.querySelector('#dashboard')) {
-                    // Convert API endpoint to data path for GitHub raw URL
-                    const owner = 'hrbayezid';
-                    const repo = 'bayezid-portfolio';
-                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
-                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
-                    
                     console.log(`🔄 Public fetch: ${rawUrl}`);
                     
                     try {
@@ -226,7 +241,6 @@ function initializeApiClient() {
                     
                     try {
                         // Convert API endpoint to data path
-                        const dataPath = `data${endpoint.replace('/api', '')}.json`;
                         const data = await window.githubService.getFileContent(dataPath);
                         
                         // Cache successful results
@@ -250,10 +264,6 @@ function initializeApiClient() {
                         // Fall back to direct raw GitHub URL for admin mode
                         try {
                             console.log(`🔄 Falling back to direct GitHub URL for ${endpoint}`);
-                            const owner = 'hrbayezid';
-                            const repo = 'bayezid-portfolio';
-                            const dataPath = `data${endpoint.replace('/api', '')}.json`;
-                            const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
                             
                             const rawResponse = await fetch(rawUrl);
                             if (!rawResponse.ok) {
@@ -277,13 +287,7 @@ function initializeApiClient() {
                                 window.syncStatus.showStatus(`Error fetching ${endpoint}: ${rawError.message}`, 'error', 10000);
                             }
                             
-                            // Check if we have stale cache data we can use
-                            if (cachedData) {
-                                console.warn(`⚠️ Using stale cached data for ${endpoint} as fallback`);
-                                return cachedData;
-                            }
-                            
-                            // Return empty data structure based on endpoint without using dummy data
+                            // Return empty data structure based on endpoint without any dummy data
                             if (endpoint.includes('skills') || endpoint.includes('projects')) {
                                 return [];
                             } else if (endpoint.includes('profile')) {
@@ -296,10 +300,6 @@ function initializeApiClient() {
                 } else {
                     // GitHub service not available, try direct GitHub fetch
                     console.log(`🔄 GitHub service not available, using direct GitHub URL for ${endpoint}`);
-                    const owner = 'hrbayezid';
-                    const repo = 'bayezid-portfolio';
-                    const dataPath = `data${endpoint.replace('/api', '')}.json`;
-                    const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/${dataPath}${cacheBuster}`;
                     
                     try {
                         const response = await fetch(rawUrl);
@@ -325,12 +325,6 @@ function initializeApiClient() {
                             }
                         }
                         
-                        // Check if we have stale cache data we can use
-                        if (cachedData) {
-                            console.warn(`⚠️ Using stale cached data for ${endpoint} as fallback`);
-                            return cachedData;
-                        }
-                        
                         // Return empty data structure with no dummy data
                         return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
                     }
@@ -348,25 +342,6 @@ function initializeApiClient() {
                 // Return empty data with no dummy fallback
                 return endpoint.includes('skills') || endpoint.includes('projects') ? [] : {};
             }
-        },
-        
-        // Method to explicitly clear cache for an endpoint or all endpoints
-        clearCache: (endpoint = null) => {
-            if (endpoint) {
-                delete window.apiClient.cache[endpoint];
-                delete window.apiClient.lastFetchTime[endpoint];
-                console.log(`🧹 Cache cleared for ${endpoint}`);
-            } else {
-                window.apiClient.cache = {};
-                window.apiClient.lastFetchTime = {};
-                console.log(`🧹 All cache cleared`);
-            }
-        },
-        
-        shouldRefresh: (endpoint) => {
-            const lastFetch = window.apiClient.lastFetchTime[endpoint] || 0;
-            const now = Date.now();
-            return (now - lastFetch) > window.apiClient.cacheTTL;
         },
         
         post: async (endpoint, data) => {
@@ -1201,42 +1176,75 @@ function addNewSkill() {
             name: skillName,
             category: skillCategory,
             proficiency: parseInt(skillProficiency),
-            icon: 'fas fa-code', // Default icon
+            icon: getIconForCategory(skillCategory), // Use dynamic icon selection
             createdAt: new Date().toISOString()
         };
         
-        // Get existing skills from localStorage or API
+        // Get existing skills from GitHub
         let skills = [];
-        if (window.apiClient) {
+        try {
+            // Force a fresh fetch from GitHub to get the latest data
+            window.apiClient.clearCache(window.API_ENDPOINTS.SKILLS);
             const existingSkills = await window.apiClient.get(window.API_ENDPOINTS.SKILLS);
             if (existingSkills && Array.isArray(existingSkills)) {
                 skills = existingSkills;
             }
+            
+            // Add new skill
+            skills.push(skill);
+            
+            // Save updated skills to GitHub
+            if (window.apiClient) {
+                const success = await window.apiClient.post(window.API_ENDPOINTS.SKILLS, skills);
+                
+                if (success) {
+                    // Close modal
+                    document.body.removeChild(modal);
+                    
+                    showNotification('Skill added successfully');
+                    
+                    // Force a refresh of the data from GitHub after update
+                    window.apiClient.clearCache(window.API_ENDPOINTS.SKILLS);
+                    const refreshedSkills = await window.apiClient.get(window.API_ENDPOINTS.SKILLS);
+                    
+                    // Refresh skills table and UI with the updated data from GitHub
+                    updateSkillsTable(refreshedSkills);
+                    updateSkillsUI(refreshedSkills);
+                    
+                    // Update last updated timestamp if GitHub service is available
+                    if (window.githubService) {
+                        window.githubService.lastUpdated = new Date();
+                        window.githubService.updateLastUpdatedDisplay();
+                    }
+                    
+                    console.log('Skill added:', skill);
                 } else {
-            const storedSkills = localStorage.getItem('skills');
-            if (storedSkills) {
-                skills = JSON.parse(storedSkills);
+                    showNotification('Failed to save skill. Please try again.', 'error');
+                }
+            } else {
+                showNotification('API client not available', 'error');
             }
+        } catch (error) {
+            console.error('Error adding skill:', error);
+            showNotification('Error adding skill: ' + error.message, 'error');
         }
-        
-        // Add new skill
-        skills.push(skill);
-        
-        // Save updated skills
-        if (window.apiClient) {
-            await window.apiClient.post(window.API_ENDPOINTS.SKILLS, skills);
-        } else {
-            localStorage.setItem('skills', JSON.stringify(skills));
-        }
-        
-        // Close modal
-        document.body.removeChild(modal);
-        
-        // Refresh skills table
-        updateSkillsTable(skills);
-        
-        console.log('Skill added:', skill);
     });
+    
+    // Helper function to get icon based on skill category
+    function getIconForCategory(category) {
+        switch (category) {
+            case 'programming':
+                return 'fas fa-code';
+            case 'data-analysis':
+                return 'fas fa-chart-bar';
+            case 'data-visualization':
+                return 'fas fa-chart-pie';
+            case 'machine-learning':
+                return 'fas fa-brain';
+            default:
+                return 'fas fa-laptop-code';
+        }
+    }
 }
 
 // Function to handle adding a new project
@@ -1301,7 +1309,7 @@ function addNewProject() {
         const projectTitle = document.getElementById('project-title').value;
         const projectCategory = document.getElementById('project-category').value;
         const projectDescription = document.getElementById('project-description').value;
-        const projectImage = document.getElementById('project-image').value || 'images/default-project.jpg';
+        const projectImage = document.getElementById('project-image').value || '';
         
         // Create project object
         const project = {
@@ -1313,37 +1321,54 @@ function addNewProject() {
             createdAt: new Date().toISOString()
         };
         
-        // Get existing projects from localStorage or API
+        // Get existing projects from GitHub
         let projects = [];
-        if (window.apiClient) {
+        try {
+            // Force a fresh fetch from GitHub to get the latest data
+            window.apiClient.clearCache(window.API_ENDPOINTS.PROJECTS);
             const existingProjects = await window.apiClient.get(window.API_ENDPOINTS.PROJECTS);
             if (existingProjects && Array.isArray(existingProjects)) {
                 projects = existingProjects;
             }
-        } else {
-            const storedProjects = localStorage.getItem('projects');
-            if (storedProjects) {
-                projects = JSON.parse(storedProjects);
-            }
-        }
-        
-        // Add new project
-        projects.push(project);
-        
-        // Save updated projects
-        if (window.apiClient) {
-            await window.apiClient.post(window.API_ENDPOINTS.PROJECTS, projects);
+            
+            // Add new project
+            projects.push(project);
+            
+            // Save updated projects to GitHub
+            if (window.apiClient) {
+                const success = await window.apiClient.post(window.API_ENDPOINTS.PROJECTS, projects);
+                
+                if (success) {
+                    // Close modal
+                    document.body.removeChild(modal);
+                    
+                    showNotification('Project added successfully');
+                    
+                    // Force a refresh of the data from GitHub after update
+                    window.apiClient.clearCache(window.API_ENDPOINTS.PROJECTS);
+                    const refreshedProjects = await window.apiClient.get(window.API_ENDPOINTS.PROJECTS);
+                    
+                    // Refresh projects table and UI with the updated data from GitHub
+                    updateProjectsTable(refreshedProjects);
+                    updateProjectsUI(refreshedProjects);
+                    
+                    // Update last updated timestamp if GitHub service is available
+                    if (window.githubService) {
+                        window.githubService.lastUpdated = new Date();
+                        window.githubService.updateLastUpdatedDisplay();
+                    }
+                    
+                    console.log('Project added:', project);
+                } else {
+                    showNotification('Failed to save project. Please try again.', 'error');
+                }
             } else {
-            localStorage.setItem('projects', JSON.stringify(projects));
+                showNotification('API client not available', 'error');
+            }
+        } catch (error) {
+            console.error('Error adding project:', error);
+            showNotification('Error adding project: ' + error.message, 'error');
         }
-        
-        // Close modal
-        document.body.removeChild(modal);
-        
-        // Refresh projects table
-        updateProjectsTable(projects);
-        
-        console.log('Project added:', project);
     });
 }
 
@@ -1454,7 +1479,7 @@ function updateProjectsTable(projects) {
     updateProjectsUI(projects);
 }
 
-// Update skills display on public page
+// Update skills display on public page and update counts
 function updateSkillsUI(skills) {
     // Find the skills display container in the public view
     const skillsSection = document.getElementById('skills-section');
@@ -1465,10 +1490,21 @@ function updateSkillsUI(skills) {
         const skillsContainer = skillsSection.querySelector('.skills-container');
         if (!skillsContainer) return;
         
-        console.log('Updating skills UI with fresh data', skills.length);
+        console.log('Updating skills UI with fresh data', skills?.length || 0);
         
         // Clear existing skills
         skillsContainer.innerHTML = '';
+        
+        // Check if we have skills data
+        if (!skills || skills.length === 0) {
+            skillsContainer.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-400">No skills data available. Add your first skill.</p>
+                </div>
+            `;
+            return;
+        }
         
         // Add each skill
         skills.forEach(skill => {
@@ -1476,9 +1512,15 @@ function updateSkillsUI(skills) {
             skillCard.className = 'glass-effect rounded-xl p-5 hover:scale-105 transition-transform';
             skillCard.setAttribute('data-category', skill.category);
             
+            // Get icon from skill data or use default
+            const icon = skill.icon || getIconForCategory(skill.category || 'programming');
+            
             skillCard.innerHTML = `
                 <div class="flex justify-between items-start mb-3">
-                    <h3 class="text-lg font-bold">${skill.name}</h3>
+                    <div class="flex items-center">
+                        <i class="${icon} mr-2 text-primary-400"></i>
+                        <h3 class="text-lg font-bold">${skill.name}</h3>
+                    </div>
                     <div class="text-xs font-medium bg-white/10 rounded-full px-2 py-1">${skill.category}</div>
                 </div>
                 <div class="w-full bg-white/10 rounded-full h-2 mt-2">
@@ -1492,12 +1534,61 @@ function updateSkillsUI(skills) {
             skillsContainer.appendChild(skillCard);
         });
         
+        // Update skill count in overview section if in dashboard
+        if (document.querySelector('#dashboard')) {
+            const skillCountElement = document.querySelector('#overview-tab .glass-effect:first-child .gradient-text');
+            if (skillCountElement) {
+                skillCountElement.textContent = skills.length;
+            }
+        }
+        
         // If there's a sync status manager, notify
         if (window.syncStatus) {
             window.syncStatus.showStatus('Skills UI updated with fresh data', 'success', 2000);
         }
-        } catch (error) {
+        
+        // Update timestamp if githubService is available
+        if (window.githubService && typeof window.githubService.updateLastUpdatedDisplay === 'function') {
+            window.githubService.updateLastUpdatedDisplay();
+        }
+    } catch (error) {
         console.error('Error updating skills UI:', error);
+        
+        // Show error in container
+        if (skillsSection) {
+            const container = skillsSection.querySelector('.skills-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-3xl text-amber-500/70 mb-2"></i>
+                        <p class="text-gray-400">Error loading skills: ${error.message}</p>
+                        <button class="mt-4 px-4 py-2 bg-primary-500/80 text-white rounded-lg hover:bg-primary-600/80 text-sm transition-colors refresh-data-btn">
+                            <i class="fas fa-sync-alt mr-1"></i>Try Again
+                        </button>
+                    </div>
+                `;
+                
+                // Add refresh button click handler
+                const refreshBtn = container.querySelector('.refresh-data-btn');
+                if (refreshBtn) {
+                    refreshBtn.addEventListener('click', () => {
+                        if (window.apiClient) {
+                            window.apiClient.clearCache(window.API_ENDPOINTS.SKILLS);
+                            window.apiClient.get(window.API_ENDPOINTS.SKILLS).then(freshData => {
+                                updateSkillsUI(freshData);
+                            }).catch(refreshError => {
+                                console.error('Error refreshing skills data:', refreshError);
+                                showNotification('Error refreshing data. Please try again.', 'error');
+                            });
+                        }
+                    });
+                }
+            }
+        }
+        
+        if (window.syncStatus) {
+            window.syncStatus.showStatus(`Error updating skills UI: ${error.message}`, 'error');
+        }
     }
 }
 
@@ -1508,10 +1599,34 @@ function updateProjectsUI(projects) {
     if (!projectsGrid) return; // Not on a page with projects display
     
     try {
-        console.log('Updating projects UI with fresh data', projects.length);
+        console.log('Updating projects UI with fresh data', projects?.length || 0);
         
         // Clear existing projects
         projectsGrid.innerHTML = '';
+        
+        // Check if we have projects data
+        if (!projects || projects.length === 0) {
+            projectsGrid.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+                    <p class="text-gray-400">No projects data available. Add your first project.</p>
+                </div>
+            `;
+            
+            // Show the empty state message if needed
+            const noProjectsMessage = document.getElementById('no-projects-message');
+            if (noProjectsMessage) {
+                noProjectsMessage.classList.remove('hidden');
+            }
+            
+            return;
+        }
+        
+        // Hide the empty state message if we have projects
+        const noProjectsMessage = document.getElementById('no-projects-message');
+        if (noProjectsMessage) {
+            noProjectsMessage.classList.add('hidden');
+        }
         
         // Add each project
         projects.forEach(project => {
@@ -1519,8 +1634,13 @@ function updateProjectsUI(projects) {
             projectCard.className = 'project-card glass-effect rounded-xl overflow-hidden hover:scale-105 transition-transform';
             projectCard.setAttribute('data-category', project.category);
             
+            // Handle image - don't use default fallback images
+            const imageElement = project.image ? 
+                `<img src="${project.image}" alt="${project.title}" class="w-full h-48 object-cover">` : 
+                `<div class="w-full h-48 bg-gray-800 flex items-center justify-center"><i class="fas fa-image text-3xl text-gray-600"></i></div>`;
+            
             projectCard.innerHTML = `
-                <img src="${project.image}" alt="${project.title}" class="w-full h-48 object-cover">
+                ${imageElement}
                 <div class="p-5">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="text-lg font-bold">${project.title}</h3>
@@ -1532,10 +1652,12 @@ function updateProjectsUI(projects) {
                             <i class="fas fa-info-circle mr-1"></i>
                             Details
                         </a>
-                        <a href="#" class="flex items-center text-primary-400 hover:text-primary-300 text-sm">
+                        ${project.demoUrl ? `
+                        <a href="${project.demoUrl}" target="_blank" class="flex items-center text-primary-400 hover:text-primary-300 text-sm">
                             <i class="fas fa-external-link-alt mr-1"></i>
                             View
                         </a>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -1543,12 +1665,58 @@ function updateProjectsUI(projects) {
             projectsGrid.appendChild(projectCard);
         });
         
+        // Update project count in overview section if in dashboard
+        if (document.querySelector('#dashboard')) {
+            const projectCountElement = document.querySelector('#overview-tab .glass-effect:nth-child(2) .gradient-text');
+            if (projectCountElement) {
+                projectCountElement.textContent = projects.length;
+            }
+        }
+        
         // If there's a sync status manager, notify
         if (window.syncStatus) {
             window.syncStatus.showStatus('Projects UI updated with fresh data', 'success', 2000);
         }
-        } catch (error) {
+        
+        // Update timestamp if githubService is available
+        if (window.githubService && typeof window.githubService.updateLastUpdatedDisplay === 'function') {
+            window.githubService.updateLastUpdatedDisplay();
+        }
+    } catch (error) {
         console.error('Error updating projects UI:', error);
+        
+        // Show error in container
+        if (projectsGrid) {
+            projectsGrid.innerHTML = `
+                <div class="col-span-full text-center py-8">
+                    <i class="fas fa-exclamation-triangle text-3xl text-amber-500/70 mb-2"></i>
+                    <p class="text-gray-400">Error loading projects: ${error.message}</p>
+                    <button class="mt-4 px-4 py-2 bg-primary-500/80 text-white rounded-lg hover:bg-primary-600/80 text-sm transition-colors refresh-data-btn">
+                        <i class="fas fa-sync-alt mr-1"></i>Try Again
+                    </button>
+                </div>
+            `;
+            
+            // Add refresh button click handler
+            const refreshBtn = projectsGrid.querySelector('.refresh-data-btn');
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', () => {
+                    if (window.apiClient) {
+                        window.apiClient.clearCache(window.API_ENDPOINTS.PROJECTS);
+                        window.apiClient.get(window.API_ENDPOINTS.PROJECTS).then(freshData => {
+                            updateProjectsUI(freshData);
+                        }).catch(refreshError => {
+                            console.error('Error refreshing projects data:', refreshError);
+                            showNotification('Error refreshing data. Please try again.', 'error');
+                        });
+                    }
+                });
+            }
+        }
+        
+        if (window.syncStatus) {
+            window.syncStatus.showStatus(`Error updating projects UI: ${error.message}`, 'error');
+        }
     }
 }
 
