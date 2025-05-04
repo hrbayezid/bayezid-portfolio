@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "2",
+    "title": "Sales Dashboard",
+    "category": "dashboard",
+    "description": "Created an interactive sales dashboard using Tableau to visualize quarterly sales performance across regions.",
+    "image": "https://via.placeholder.com/640x360.png?text=Sales+Dashboard",
+    "createdAt": "2023-01-02T00:00:00.000Z"
+  },
+  {
+    "id": "3",
+    "title": "Sentiment Analysis",
+    "category": "ml",
+    "description": "Built a machine learning model to analyze customer review sentiment using NLP techniques and scikit-learn.",
+    "image": "https://via.placeholder.com/640x360.png?text=Sentiment+Analysis",
+    "createdAt": "2023-01-03T00:00:00.000Z"
+  },
+  {
+    "id": "4",
+    "title": "Market Trend Visualization",
+    "category": "viz",
+    "description": "Designed data visualizations for market trend analysis using Matplotlib and Seaborn.",
+    "image": "https://via.placeholder.com/640x360.png?text=Market+Visualization",
+    "createdAt": "2023-01-04T00:00:00.000Z"
+  }
+]
